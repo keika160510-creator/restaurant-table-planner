@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Restaurant Table Planner</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 12px;
+    margin: 0;
+    background: #fafafa;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+  }
+
+  .small {
+    color: #666;
+    font-size: 11px;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    margin-top: 12px;
+  }
+
+  .panel,
+  .map {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    background: white;
+    box-sizing: border-box;
+  }
+
+  .panel {
+    width: 430px;
+    flex-shrink: 0;
+  }
+
+  .map {
+    width: 610px;
+    flex-shrink: 0;
+  }
+
+  .panel h2,
+  .map h2 {
+    margin: 0 0 8px;
+    font-size: 16px;
+  }
+
+  h3 {
+    margin: 14px 0 8px;
+    font-size: 14px;
+  }
+
+  label {
+    display: inline-block;
+    width: 92px;
+    font-size: 13px;
+  }
+
+  input,
+  select {
+    padding: 5px;
+    margin: 3px 0;
+    font-size: 13px;
+  }
+
+  button {
+    padding: 7px 10px;
+    cursor: pointer;
+    margin-right: 4px;
+    margin-top: 5px;
+    font-size: 12px;
+  }
+
+  .result {
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 46px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-line;
+  }
+
+  .clock-box {
+    margin: 6px 0 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+    padding: 8px;
+  }
+
+  .clock-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .clock-main {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .option-list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .option-card {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .option-card:hover {
+    background: #eef6ff;
+  }
+
+  .option-card.selected {
+    border: 2px solid #2563eb;
+    background: #dbeafe;
+  }
+
+  .option-title {
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .section {
+    margin-top: 12px;
+  }
+
+  .list {
+    margin-top: 8px;
+  }
+
+  .list-item {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 8px;
+    margin: 6px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    background: #fcfcfc;
+  }
+
+  .list-item.waiting {
+    background: #fffaf0;
+    border-color: #f0c36d;
+  }
+
+  .list-item.seated {
+    background: #f0fff4;
+    border-color: #8fd3a7;
+  }
+
+  .list-item.future {
+    background: #f7f7ff;
+    border-color: #b9c3ff;
+  }
+
+  .reservation-id {
+    font-weight: 700;
+  }
+
+  .color-dot-inline {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+    min-width: 92px;
+  }
+
+  .action-buttons button {
+    margin: 0;
+    width: 92px;
+  }
+
+  .seat-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 6px;
+  }
+
+  .left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .middle-column {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 116px;
+  }
+
+  .right-column {
+    display: grid;
+    grid-template-columns: repeat(2, 60px);
+    gap: 8px;
+    margin-top: 92px;
+  }
+
+  .table {
+    border: 2px solid #666;
+    border-radius: 9px;
+    width: 60px;
+    height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    user-select: none;
+    text-align: center;
+    padding: 2px 1px;
+    overflow: hidden;
+  }
+
+  .free { background: #f7f7f7; }
+  .used { background: #ffd6d6; }
+  .suggested { background: #d6ffe2; }
+  .next-up { background: #dbeafe; }
+
+  .table-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  .capacity {
+    font-size: 8px;
+    color: #666;
+    margin-top: 1px;
+    line-height: 1;
+  }
+
+  .time-label {
+    font-size: 6.7px;
+    color: #444;
+    margin-top: 2px;
+    line-height: 1.03;
+    min-height: 18px;
+    white-space: pre-line;
+  }
+
+  .entry-line {
+    display: block;
+    margin-top: 1px;
+  }
+
+  .entry-id {
+    font-weight: 700;
+    margin-right: 2px;
+  }
+
+  .more-label {
+    font-size: 6px;
+    color: #555;
+    margin-top: 1px;
+    line-height: 1;
+    min-height: 7px;
+  }
+
+  .wall {
+    width: 20px;
+    height: 52px;
+    border-radius: 6px;
+    border: 2px solid #444;
+    background: repeating-linear-gradient(
+      45deg,
+      #777,
+      #777 6px,
+      #999 6px,
+      #999 12px
+    );
+    box-sizing: border-box;
+  }
+
+  .legend {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid #555;
+    display: inline-block;
+  }
+
+  .dot.free { background: #f7f7f7; }
+  .dot.used { background: #ffd6d6; }
+  .dot.suggested { background: #d6ffe2; }
+  .dot.next-up { background: #dbeafe; }
+
+  .empty {
+    color: #666;
+    font-size: 11px;
+    padding: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Restaurant Table Planner</h1>
+
+<div class="clock-box">
+  <div class="clock-line">
+    <span class="clock-main" id="virtualClock"></span>
+    <span class="small">← この時計を基準に残り時間や開始時刻を計算</span>
+  </div>
+  <div class="clock-line">
+    <button id="minus30">-30 min</button>
+    <button id="minus5">-5 min</button>
+    <button id="plus5">+5 min</button>
+    <button id="plus30">+30 min</button>
+    <button id="resetClock">Reset to real time</button>
+  </div>
+  <div class="small">Business hours: 11:30–14:30 / 16:30–21:15 (5-minute slots)</div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>New Reservation / Walk-in</h2>
+
+    <div>
+      <label>Start</label>
+      <select id="start"></select>
+    </div>
+
+    <div>
+      <label>People</label>
+      <input id="people" type="number" min="1" max="20" value="4">
+    </div>
+
+    <div>
+      <label>Type</label>
+      <select id="type">
+        <option value="reservation" selected>Reservation</option>
+        <option value="walkin">Walk-in</option>
+      </select>
+    </div>
+
+    <div id="walkinBlock" style="display:none;">
+      <label>Max mins</label>
+      <input id="maxMins" type="number" min="60" max="120" step="5" value="60">
+      <span class="small">minimum 60 mins</span>
+    </div>
+
+    <div style="margin-top: 8px;">
+      <button id="btnSuggest" type="button">Suggest</button>
+      <button id="btnAdd" type="button">Add Entry</button>
+      <button id="btnClearSuggest" type="button">Clear</button>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div id="optionList" class="option-list"></div>
+
+    <div class="section">
+      <h3>Seated</h3>
+      <div class="small">Now occupying tables</div>
+      <div id="seatedList" class="list"></div>
+    </div>
+
+    <div class="section">
+      <h3>Waiting List</h3>
+      <div class="small">Not seated yet / does not block tables</div>
+      <div id="waitingList" class="list"></div>
+    </div>
+
+    <div class="section">
+      <h3>Future Reservations</h3>
+      <div class="small">Reserved in advance / can be seated early manually</div>
+      <div id="futureList" class="list"></div>
+    </div>
+  </div>
+
+  <div class="map">
+    <h2>Seat Map</h2>
+
+    <div class="seat-layout">
+      <div class="left-column" id="leftColumn"></div>
+
+      <div class="middle-column">
+        <div class="table free" id="t9">
+          <div class="table-name">9</div>
+          <div class="capacity">4 seats</div>
+          <div class="time-label" id="time-9"></div>
+          <div class="more-label" id="more-9"></div>
+        </div>
+        <div class="wall" title="Wall"></div>
+        <div class="table free" id="t10">
+          <div class="table-name">10</div>
+          <div class="capacity">4 seats</div>
+          <div class="time-label" id="time-10"></div>
+          <div class="more-label" id="more-10"></div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="table free" id="t11A">
+          <div class="table-name">11A</div>
+          <div class="capacity">2 seats</div>
+          <div class="time-label" id="time-11A"></div>
+          <div class="more-label" id="more-11A"></div>
+        </div>
+        <div class="table free" id="t11B">
+          <div class="table-name">11B</div>
+          <div class="capacity">2 seats</div>
+          <div class="time-label" id="time-11B"></div>
+          <div class="more-label" id="more-11B"></div>
+        </div>
+        <div class="table free" id="t12A">
+          <div class="table-name">12A</div>
+          <div class="capacity">2 seats</div>
+          <div class="time-label" id="time-12A"></div>
+          <div class="more-label" id="more-12A"></div>
+        </div>
+        <div class="table free" id="t12B">
+          <div class="table-name">12B</div>
+          <div class="capacity">2 seats</div>
+          <div class="time-label" id="time-12B"></div>
+          <div class="more-label" id="more-12B"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot free"></span> Free</span>
+      <span><span class="dot used"></span> Used / blocked</span>
+      <span><span class="dot suggested"></span> Available now</span>
+      <span><span class="dot next-up"></span> Selected wait option</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TABLES = [
+    { id: "1", capacity: 2 },
+    { id: "2", capacity: 2 },
+    { id: "3", capacity: 2 },
+    { id: "4", capacity: 2 },
+    { id: "5", capacity: 2 },
+    { id: "6", capacity: 2 },
+    { id: "7", capacity: 2 },
+    { id: "8", capacity: 2 },
+    { id: "9", capacity: 4 },
+    { id: "10", capacity: 4 },
+    { id: "11A", capacity: 2 },
+    { id: "11B", capacity: 2 },
+    { id: "12A", capacity: 2 },
+    { id: "12B", capacity: 2 }
+  ];
+
+  const CAP = Object.fromEntries(TABLES.map(t => [t.id, t.capacity]));
+
+  const GROUP_COLORS = [
+    "#2563eb",
+    "#16a34a",
+    "#dc2626",
+    "#9333ea",
+    "#ea580c",
+    "#0891b2",
+    "#ca8a04",
+    "#db2777",
+    "#4f46e5",
+    "#0f766e"
+  ];
+
+  let seatedEntries = [];
+  let waitingEntries = [];
+  let futureReservations = [];
+
+  let suggestedTables = [];
+  let nextAvailableTables = [];
+  let pendingSuggestion = null;
+  let suggestionOptions = [];
+  let selectedOptionIndex = -1;
+  let reservationCounter = 1;
+
+  let virtualNowMin = getRealNowMinutes();
+
+  const leftColumn = document.getElementById("leftColumn");
+  for (let i = 1; i <= 8; i++) {
+    const div = document.createElement("div");
+    div.className = "table free";
+    div.id = "t" + i;
+    div.innerHTML = `
+      <div class="table-name">${i}</div>
+      <div class="capacity">2 seats</div>
+      <div class="time-label" id="time-${i}"></div>
+      <div class="more-label" id="more-${i}"></div>
+    `;
+    leftColumn.appendChild(div);
+  }
+
+  function getRealNowMinutes() {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  }
+
+  function clampToDay(min) {
+    return Math.max(0, Math.min(23 * 60 + 59, min));
+  }
+
+  function updateVirtualClockText() {
+    document.getElementById("virtualClock").textContent = `Virtual Time: ${minutesToLabel(virtualNowMin)}`;
+  }
+
+  function adjustClock(delta) {
+    virtualNowMin = clampToDay(virtualNowMin + delta);
+    updateVirtualClockText();
+    renderAllLists();
+    refreshMap();
+    if (pendingSuggestion) {
+      selectOption(selectedOptionIndex);
+    }
+  }
+
+  function resetClockToReal() {
+    virtualNowMin = getRealNowMinutes();
+    updateVirtualClockText();
+    renderAllLists();
+    refreshMap();
+    if (pendingSuggestion) {
+      selectOption(selectedOptionIndex);
+    }
+  }
+
+  function getAllBusinessTimes() {
+    const times = [];
+
+    function addRange(startH, startM, endH, endM) {
+      let t = startH * 60 + startM;
+      const end = endH * 60 + endM;
+      while (t <= end) {
+        times.push(t);
+        t += 5;
+      }
+    }
+
+    addRange(11, 30, 14, 30);
+    addRange(16, 30, 21, 15);
+
+    return times;
+  }
+
+  function generateTimes() {
+    const select = document.getElementById("start");
+    select.innerHTML = "";
+
+    const times = getAllBusinessTimes();
+    for (const minutes of times) {
+      const option = document.createElement("option");
+      option.value = minutes;
+      option.textContent = minutesToLabel(minutes);
+      select.appendChild(option);
+    }
+
+    const nearest = times.reduce((best, t) => {
+      return Math.abs(t - virtualNowMin) < Math.abs(best - virtualNowMin) ? t : best;
+    }, times[0]);
+
+    select.value = String(nearest);
+  }
+
+  function minutesToLabel(totalMinutes) {
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  function getColorForGroup(groupId) {
+    const num = Number(groupId.replace("R", "")) || 1;
+    return GROUP_COLORS[(num - 1) % GROUP_COLORS.length];
+  }
+
+  function overlap(aStart, aEnd, bStart, bEnd) {
+    return !(aEnd <= bStart || bEnd <= aStart);
+  }
+
+  function capacityOf(tableIds) {
+    return tableIds.reduce((sum, id) => sum + (CAP[id] || 0), 0);
+  }
+
+  function getAllBlockingEntries() {
+    return [...seatedEntries, ...futureReservations];
+  }
+
+  function tablesUsedInWindow(startMin, endMin, ignoreEntryId = null) {
+    const used = new Set();
+
+    for (const r of getAllBlockingEntries()) {
+      if (ignoreEntryId && r.id === ignoreEntryId) continue;
+      if (overlap(startMin, endMin, r.startMin, r.endMin)) {
+        r.tables.forEach(t => used.add(t));
+      }
+    }
+
+    return used;
+  }
+
+  function freeTablesInWindow(startMin, endMin, ignoreEntryId = null) {
+    const used = tablesUsedInWindow(startMin, endMin, ignoreEntryId);
+    return TABLES.map(t => t.id).filter(id => !used.has(id));
+  }
+
+  function getOverlappingEntries(startMin, endMin, ignoreEntryId = null) {
+    return getAllBlockingEntries().filter(r => {
+      if (ignoreEntryId && r.id === ignoreEntryId) return false;
+      return overlap(startMin, endMin, r.startMin, r.endMin);
+    });
+  }
+
+  function getSpareChairCountInWindow(startMin, endMin, ignoreEntryId = null) {
+    let spare = 0;
+    for (const r of getOverlappingEntries(startMin, endMin, ignoreEntryId)) {
+      spare += Math.max(0, capacityOf(r.tables) - r.people);
+    }
+    return spare;
+  }
+
+  function areBoth12Free(startMin, endMin, ignoreEntryId = null) {
+    const used = tablesUsedInWindow(startMin, endMin, ignoreEntryId);
+    return !used.has("12A") && !used.has("12B");
+  }
+
+  function canUseFourTableLongSetup(startMin, endMin, ignoreEntryId = null) {
+    const free = freeTablesInWindow(startMin, endMin, ignoreEntryId);
+    return areBoth12Free(startMin, endMin, ignoreEntryId)
+      && free.includes("11A")
+      && free.includes("11B")
+      && free.includes("12A")
+      && free.includes("12B");
+  }
+
+  function findTwoTableSpecialComboForFive(startMin, endMin, ignoreEntryId = null) {
+    const free = freeTablesInWindow(startMin, endMin, ignoreEntryId);
+
+    if (!areBoth12Free(startMin, endMin, ignoreEntryId)) return null;
+    if (getSpareChairCountInWindow(startMin, endMin, ignoreEntryId) < 1) return null;
+
+    const pairPriority = [
+      ["11A", "11B"],
+      ["12A", "12B"],
+      ["11A", "12A"],
+      ["11B", "12B"],
+      ["11A", "12B"],
+      ["11B", "12A"]
+    ];
+
+    for (const pair of pairPriority) {
+      if (pair.every(id => free.includes(id))) {
+        return pair;
+      }
+    }
+
+    return null;
+  }
+
+  function consecutiveSuggestion(order, free, people) {
+    const need = Math.ceil(people / 2);
+    for (let i = 0; i <= order.length - need; i++) {
+      const slice = order.slice(i, i + need);
+      if (slice.every(id => free.includes(id))) return slice;
+    }
+    return null;
+  }
+
+  function findAnyCombination(people, free) {
+    const combos = [];
+
+    function backtrack(start, chosen) {
+      if (capacityOf(chosen) >= people) {
+        combos.push([...chosen]);
+        return;
+      }
+
+      for (let i = start; i < free.length; i++) {
+        chosen.push(free[i]);
+        backtrack(i + 1, chosen);
+        chosen.pop();
+      }
+    }
+
+    backtrack(0, []);
+
+    if (combos.length === 0) return null;
+
+    combos.sort((a, b) => {
+      if (a.length !== b.length) return a.length - b.length;
+      return capacityOf(a) - capacityOf(b);
+    });
+
+    return combos[0];
+  }
+
+  function suggestForLargeGroup(startMin, endMin, people, free, ignoreEntryId = null) {
+    const fullLine = ["1","2","3","4","5","6","7","8"];
+    const lineSuggestion = consecutiveSuggestion(fullLine, free, people);
+    if (lineSuggestion) {
+      return {
+        tables: lineSuggestion,
+        note: `Standard combined line setup (${capacityOf(lineSuggestion)} seats)`
+      };
+    }
+
+    if (people >= 6 && people <= 8 && canUseFourTableLongSetup(startMin, endMin, ignoreEntryId)) {
+      return {
+        tables: ["11A", "11B", "12A", "12B"],
+        note: "Special long-table setup using 11A+11B+12A+12B"
+      };
+    }
+
+    return null;
+  }
+
+  function suggestForFive(startMin, endMin, free, ignoreEntryId = null) {
+    const lineSuggestion = consecutiveSuggestion(["1","2","3","4","5","6","7","8"], free, 5);
+    if (lineSuggestion) {
+      return {
+        tables: lineSuggestion,
+        note: `Standard line setup (${capacityOf(lineSuggestion)} seats)`
+      };
+    }
+
+    const pair = findTwoTableSpecialComboForFive(startMin, endMin, ignoreEntryId);
+    if (pair) {
+      return {
+        tables: pair,
+        note: "Special 5-person setup using 2 tables + 1 borrowed chair"
+      };
+    }
+
+    return null;
+  }
+
+  function suggestFor3or4(startMin, endMin, people, free) {
+    if (people <= 4) {
+      if (free.includes("10")) return { tables: ["10"], note: "Table 10" };
+      if (free.includes("11A") && free.includes("11B")) return { tables: ["11A", "11B"], note: "11A + 11B" };
+      if (free.includes("12A") && free.includes("12B")) return { tables: ["12A", "12B"], note: "12A + 12B" };
+      if (free.includes("9")) return { tables: ["9"], note: "Table 9" };
+    }
+
+    const leftPair = consecutiveSuggestion(["1","2","3","4","5","6","7","8"], free, people);
+    if (leftPair) {
+      return { tables: leftPair, note: "Left-side connected tables" };
+    }
+
+    const any = findAnyCombination(people, free);
+    if (any) return { tables: any, note: "Fallback combination" };
+    return null;
+  }
+
+  function suggestFor1or2(free, people) {
+    const twoSeatPriority = ["11A","11B","12A","12B","1","2","3","4","5","6","7","8"];
+    for (const id of twoSeatPriority) {
+      if (free.includes(id) && CAP[id] >= people) {
+        return { tables: [id], note: `Table ${id}` };
+      }
+    }
+
+    if (free.includes("10") && people <= 4) return { tables: ["10"], note: "Table 10" };
+    if (free.includes("9") && people <= 4) return { tables: ["9"], note: "Table 9" };
+
+    const any = findAnyCombination(people, free);
+    if (any) return { tables: any, note: "Fallback combination" };
+    return null;
+  }
+
+  function getNextReservationStartForTable(tableId, currentStartMin, ignoreEntryId = null) {
+    const futureReservationsForTable = getAllBlockingEntries()
+      .filter(r => {
+        if (ignoreEntryId && r.id === ignoreEntryId) return false;
+        return r.tables.includes(tableId) && r.startMin > currentStartMin;
+      })
+      .sort((a, b) => a.startMin - b.startMin);
+
+    if (futureReservationsForTable.length === 0) return null;
+    return futureReservationsForTable[0].startMin;
+  }
+
+  function suggestWalkIn(startMin, people, requestedMaxMins, ignoreEntryId = null) {
+    const fullWindowEnd = startMin + 120;
+    const fullFree = freeTablesInWindow(startMin, fullWindowEnd, ignoreEntryId);
+
+    let found = null;
+
+    if (people >= 6) {
+      found = suggestForLargeGroup(startMin, fullWindowEnd, people, fullFree, ignoreEntryId);
+    } else if (people === 5) {
+      found = suggestForFive(startMin, fullWindowEnd, fullFree, ignoreEntryId);
+    } else if (people >= 3) {
+      found = suggestFor3or4(startMin, fullWindowEnd, people, fullFree);
+    } else {
+      found = suggestFor1or2(fullFree, people);
+    }
+
+    if (found) {
+      return {
+        ok: true,
+        startMin,
+        endMin: fullWindowEnd,
+        tables: found.tables,
+        note: `Walk-in: 120 mins available / ${found.note}`,
+        status: "now"
+      };
+    }
+
+    const candidates = [];
+
+    // まず普通の単独/組み合わせ候補
+    for (const table of TABLES) {
+      if (table.capacity < people) continue;
+
+      const isUsedNow = getAllBlockingEntries().some(r =>
+        (!ignoreEntryId || r.id !== ignoreEntryId) &&
+        r.tables.includes(table.id) &&
+        overlap(startMin, startMin + 1, r.startMin, r.endMin)
+      );
+
+      if (isUsedNow) continue;
+
+      const nextStart = getNextReservationStartForTable(table.id, startMin, ignoreEntryId);
+      let availableMins = nextStart === null ? requestedMaxMins : nextStart - startMin;
+
+      if (availableMins >= 60) {
+        candidates.push({
+          tables: [table.id],
+          availableMins: Math.min(availableMins, requestedMaxMins),
+          note: `Single table ${table.id}`
+        });
+      }
+    }
+
+    // 5名 special pair + spare chair
+    if (people === 5) {
+      const pair = findTwoTableSpecialComboForFive(startMin, startMin + requestedMaxMins, ignoreEntryId);
+      if (pair) {
+        let nextBlockStart = Infinity;
+        for (const id of pair) {
+          const nextStart = getNextReservationStartForTable(id, startMin, ignoreEntryId);
+          if (nextStart !== null) nextBlockStart = Math.min(nextBlockStart, nextStart);
+        }
+        const availableMins = nextBlockStart === Infinity ? requestedMaxMins : Math.min(requestedMaxMins, nextBlockStart - startMin);
+        if (availableMins >= 60) {
+          candidates.push({
+            tables: pair,
+            availableMins,
+            note: "2 tables + borrowed chair"
+          });
+        }
+      }
+    }
+
+    // 6-8名 special long-table
+    if (people >= 6 && people <= 8 && canUseFourTableLongSetup(startMin, startMin + requestedMaxMins, ignoreEntryId)) {
+      let nextBlockStart = Infinity;
+      for (const id of ["11A", "11B", "12A", "12B"]) {
+        const nextStart = getNextReservationStartForTable(id, startMin, ignoreEntryId);
+        if (nextStart !== null) nextBlockStart = Math.min(nextBlockStart, nextStart);
+      }
+      const availableMins = nextBlockStart === Infinity ? requestedMaxMins : Math.min(requestedMaxMins, nextBlockStart - startMin);
+      if (availableMins >= 60) {
+        candidates.push({
+          tables: ["11A", "11B", "12A", "12B"],
+          availableMins,
+          note: "Special long-table setup"
+        });
+      }
+    }
+
+    if (candidates.length === 0) {
+      return { ok: false, startMin, endMin: startMin, tables: [], note: "", status: "none" };
+    }
+
+    candidates.sort((a, b) => {
+      if (b.availableMins !== a.availableMins) return b.availableMins - a.availableMins;
+      return a.tables.length - b.tables.length;
+    });
+
+    const best = candidates[0];
+
+    return {
+      ok: true,
+      startMin,
+      endMin: startMin + best.availableMins,
+      tables: best.tables,
+      note: `Walk-in: only ${best.availableMins} mins available / ${best.note}`,
+      status: "now"
+    };
+  }
+
+  function suggestReservation(startMin, people, ignoreEntryId = null) {
+    const endMin = startMin + 120;
+    const free = freeTablesInWindow(startMin, endMin, ignoreEntryId);
+
+    let found = null;
+
+    if (people >= 6) {
+      found = suggestForLargeGroup(startMin, endMin, people, free, ignoreEntryId);
+    } else if (people === 5) {
+      found = suggestForFive(startMin, endMin, free, ignoreEntryId);
+    } else if (people >= 3) {
+      found = suggestFor3or4(startMin, endMin, people, free);
+    } else {
+      found = suggestFor1or2(free, people);
+    }
+
+    if (!found) {
+      return { ok: false, startMin, endMin, tables: [], note: "", status: "none" };
+    }
+
+    return {
+      ok: true,
+      startMin,
+      endMin,
+      tables: found.tables,
+      note: `Reservation: 120 mins / ${found.note}`,
+      status: "now"
+    };
+  }
+
+  function suggestTablesForNewEntry({ type, startMin, people, maxMins }, ignoreEntryId = null) {
+    if (type === "reservation") {
+      return suggestReservation(startMin, people, ignoreEntryId);
+    } else {
+      return suggestWalkIn(startMin, people, maxMins, ignoreEntryId);
+    }
+  }
+
+  function findFutureSlots(startMin, people, type, maxMins, limit = 3, ignoreEntryId = null) {
+    const allTimes = getAllBusinessTimes();
+    const futureTimes = allTimes.filter(t => t > startMin);
+    const results = [];
+    const seen = new Set();
+
+    for (const candidateStart of futureTimes) {
+      let suggestion;
+
+      if (type === "reservation") {
+        suggestion = suggestReservation(candidateStart, people, ignoreEntryId);
+      } else {
+        suggestion = suggestWalkIn(candidateStart, people, maxMins, ignoreEntryId);
+      }
+
+      if (!suggestion.ok) continue;
+
+      const key = `${candidateStart}|${suggestion.tables.join(",")}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      results.push({
+        ...suggestion,
+        status: "later",
+        waitMins: candidateStart - startMin
+      });
+
+      if (results.length >= limit) break;
+    }
+
+    return results;
+  }
+
+  function setTableClass(id, className) {
+    const el = document.getElementById("t" + id);
+    if (!el) return;
+    el.classList.remove("free", "used", "suggested", "next-up");
+    el.classList.add(className);
+  }
+
+  function formatTableLine(entry) {
+    if (virtualNowMin < entry.startMin) {
+      return `${entry.groupId} in ${entry.startMin - virtualNowMin}m`;
+    }
+    if (virtualNowMin >= entry.startMin && virtualNowMin < entry.endMin) {
+      return `${entry.groupId} ${entry.endMin - virtualNowMin}m left`;
+    }
+    return `${entry.groupId} ended`;
+  }
+
+  function updateTableTimeLabels() {
+    const blockingEntries = getAllBlockingEntries();
+
+    for (const table of TABLES) {
+      const timeLabel = document.getElementById(`time-${table.id}`);
+      const moreLabel = document.getElementById(`more-${table.id}`);
+      if (!timeLabel || !moreLabel) continue;
+
+      let entries = blockingEntries
+        .filter(r => r.tables.includes(table.id))
+        .map(r => ({
+          groupId: r.groupId,
+          startMin: r.startMin,
+          endMin: r.endMin
+        }));
+
+      if (pendingSuggestion && pendingSuggestion.previewBlocksTables && pendingSuggestion.tables.includes(table.id)) {
+        entries.push({
+          groupId: pendingSuggestion.groupId,
+          startMin: pendingSuggestion.startMin,
+          endMin: pendingSuggestion.endMin
+        });
+      }
+
+      entries.sort((a, b) => a.startMin - b.startMin);
+
+      if (entries.length === 0) {
+        timeLabel.innerHTML = "";
+        moreLabel.textContent = "";
+        continue;
+      }
+
+      const visible = entries.slice(0, 2);
+      const hiddenCount = entries.length - visible.length;
+
+      timeLabel.innerHTML = visible
+        .map(e => `<span class="entry-line"><span class="entry-id" style="color:${getColorForGroup(e.groupId)};">${formatTableLine(e)}</span></span>`)
+        .join("");
+
+      moreLabel.textContent = hiddenCount > 0 ? `+${hiddenCount} more` : "";
+    }
+  }
+
+  function refreshMap() {
+    TABLES.forEach(t => setTableClass(t.id, "free"));
+
+    const used = new Set();
+    getAllBlockingEntries().forEach(r => r.tables.forEach(t => used.add(t)));
+    used.forEach(t => setTableClass(t, "used"));
+
+    suggestedTables.forEach(t => {
+      if (!used.has(t)) setTableClass(t, "suggested");
+    });
+
+    nextAvailableTables.forEach(t => {
+      if (!used.has(t)) setTableClass(t, "next-up");
+    });
+
+    updateTableTimeLabels();
+  }
+
+  function clearSuggestionState() {
+    suggestedTables = [];
+    nextAvailableTables = [];
+    pendingSuggestion = null;
+    suggestionOptions = [];
+    selectedOptionIndex = -1;
+  }
+
+  function renderEmpty(container, text) {
+    container.innerHTML = `<div class="empty">${text}</div>`;
+  }
+
+  function seatedStatusText(r) {
+    if (virtualNowMin < r.startMin) {
+      return `Starts in ${r.startMin - virtualNowMin} mins`;
+    }
+    if (virtualNowMin < r.endMin) {
+      return `${r.endMin - virtualNowMin} mins left`;
+    }
+    return `Ended ${virtualNowMin - r.endMin} mins ago`;
+  }
+
+  function futureStatusText(r) {
+    if (virtualNowMin < r.startMin) {
+      return `Starts in ${r.startMin - virtualNowMin} mins`;
+    }
+    if (virtualNowMin >= r.startMin && virtualNowMin < r.endMin) {
+      return `Reservation time started ${virtualNowMin - r.startMin} mins ago`;
+    }
+    return `Reservation end passed ${virtualNowMin - r.endMin} mins ago`;
+  }
+
+  function renderSeatedList() {
+    const container = document.getElementById("seatedList");
+    container.innerHTML = "";
+
+    if (seatedEntries.length === 0) {
+      renderEmpty(container, "No seated groups.");
+      return;
+    }
+
+    for (const r of seatedEntries) {
+      const color = getColorForGroup(r.groupId);
+      const div = document.createElement("div");
+      div.className = "list-item seated";
+      div.innerHTML = `
+        <div>
+          <div>
+            <span class="color-dot-inline" style="background:${color};"></span>
+            <span class="reservation-id" style="color:${color};">${r.groupId}</span>
+            <b>${r.type === "reservation" ? "Reservation / Seated" : "Walk-in / Seated"}</b> — ${r.people} people
+          </div>
+          <div class="small">Time: ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}</div>
+          <div class="small">Tables: ${r.tables.join(", ")}</div>
+          <div class="small">${seatedStatusText(r)}</div>
+          ${r.note ? `<div class="small">${r.note}</div>` : ""}
+        </div>
+        <div class="action-buttons">
+          <button data-id="${r.id}" data-action="delete">Delete</button>
+        </div>
+      `;
+
+      div.querySelector('[data-action="delete"]').addEventListener("click", () => {
+        seatedEntries = seatedEntries.filter(x => x.id !== r.id);
+        renderAllLists();
+        refreshMap();
+        document.getElementById("result").innerText = "";
+      });
+
+      container.appendChild(div);
+    }
+  }
+
+  function renderWaitingList() {
+    const container = document.getElementById("waitingList");
+    container.innerHTML = "";
+
+    if (waitingEntries.length === 0) {
+      renderEmpty(container, "No waiting groups.");
+      return;
+    }
+
+    for (const r of waitingEntries) {
+      const color = getColorForGroup(r.groupId);
+      const estLeft = Math.max(0, r.startMin - virtualNowMin);
+
+      const div = document.createElement("div");
+      div.className = "list-item waiting";
+      div.innerHTML = `
+        <div>
+          <div>
+            <span class="color-dot-inline" style="background:${color};"></span>
+            <span class="reservation-id" style="color:${color};">${r.groupId}</span>
+            <b>Waiting</b> — ${r.people} people
+          </div>
+          <div class="small">Requested at: ${minutesToLabel(r.originalRequestedStart)}</div>
+          <div class="small">Estimated seat time: ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}</div>
+          <div class="small">Estimated tables: ${r.tables.join(", ")}</div>
+          <div class="small">${estLeft === 0 ? "Estimated time reached or passed" : `Estimated wait remaining: ${estLeft} mins`}</div>
+          ${r.note ? `<div class="small">${r.note}</div>` : ""}
+        </div>
+        <div class="action-buttons">
+          <button data-id="${r.id}" data-action="seat">Seat Now</button>
+          <button data-id="${r.id}" data-action="delete">Delete</button>
+        </div>
+      `;
+
+      div.querySelector('[data-action="seat"]').addEventListener("click", () => {
+        confirmSeatWaitingEntry(r.id);
+      });
+
+      div.querySelector('[data-action="delete"]').addEventListener("click", () => {
+        waitingEntries = waitingEntries.filter(x => x.id !== r.id);
+        renderAllLists();
+        refreshMap();
+        document.getElementById("result").innerText = "";
+      });
+
+      container.appendChild(div);
+    }
+  }
+
+  function renderFutureReservationsList() {
+    const container = document.getElementById("futureList");
+    container.innerHTML = "";
+
+    if (futureReservations.length === 0) {
+      renderEmpty(container, "No future reservations.");
+      return;
+    }
+
+    for (const r of futureReservations) {
+      const color = getColorForGroup(r.groupId);
+      const seatButtonLabel = virtualNowMin >= r.startMin ? "Seat Now" : "Seat Early";
+
+      const div = document.createElement("div");
+      div.className = "list-item future";
+      div.innerHTML = `
+        <div>
+          <div>
+            <span class="color-dot-inline" style="background:${color};"></span>
+            <span class="reservation-id" style="color:${color};">${r.groupId}</span>
+            <b>Reservation</b> — ${r.people} people
+          </div>
+          <div class="small">Reserved time: ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}</div>
+          <div class="small">Tables: ${r.tables.join(", ")}</div>
+          <div class="small">${futureStatusText(r)}</div>
+          ${r.note ? `<div class="small">${r.note}</div>` : ""}
+        </div>
+        <div class="action-buttons">
+          <button data-id="${r.id}" data-action="seat">${seatButtonLabel}</button>
+          <button data-id="${r.id}" data-action="delete">Delete</button>
+        </div>
+      `;
+
+      div.querySelector('[data-action="seat"]').addEventListener("click", () => {
+        seatFutureReservationNow(r.id);
+      });
+
+      div.querySelector('[data-action="delete"]').addEventListener("click", () => {
+        futureReservations = futureReservations.filter(x => x.id !== r.id);
+        renderAllLists();
+        refreshMap();
+        document.getElementById("result").innerText = "";
+      });
+
+      container.appendChild(div);
+    }
+  }
+
+  function renderAllLists() {
+    renderSeatedList();
+    renderWaitingList();
+    renderFutureReservationsList();
+  }
+
+  function selectOption(index) {
+    const option = suggestionOptions[index];
+    if (!option) return;
+
+    selectedOptionIndex = index;
+    suggestedTables = [];
+    nextAvailableTables = [];
+
+    pendingSuggestion = {
+      groupId: `R${reservationCounter}`,
+      type: option.type,
+      people: option.people,
+      startMin: option.startMin,
+      endMin: option.endMin,
+      tables: option.tables,
+      note: option.note,
+      mode: option.mode,
+      waitMins: option.waitMins || 0,
+      maxMins: option.maxMins,
+      originalRequestedStart: option.originalRequestedStart,
+      previewBlocksTables: option.mode === "now" && option.type === "reservation"
+    };
+
+    if (option.mode === "now") {
+      suggestedTables = option.tables;
+
+      if (option.type === "reservation") {
+        document.getElementById("result").innerText =
+          `🟢 Reservation can be booked\n${pendingSuggestion.groupId} / ${pendingSuggestion.people} people at ${minutesToLabel(option.startMin)} using [${option.tables.join(", ")}]`;
+      } else {
+        document.getElementById("result").innerText =
+          `🟢 Walk-in can be seated now\n${pendingSuggestion.groupId} / ${pendingSuggestion.people} people at ${minutesToLabel(option.startMin)} using [${option.tables.join(", ")}]`;
+      }
+    } else {
+      nextAvailableTables = option.tables;
+      document.getElementById("result").innerText =
+        `⏳ Waiting option selected\nEstimated seat time: ${minutesToLabel(option.startMin)} using [${option.tables.join(", ")}]\nEstimated wait: ${Math.max(0, option.startMin - virtualNowMin)} mins`;
+    }
+
+    renderOptionList();
+    refreshMap();
+  }
+
+  function renderOptionList() {
+    const container = document.getElementById("optionList");
+    container.innerHTML = "";
+
+    if (suggestionOptions.length === 0) return;
+
+    suggestionOptions.forEach((option, index) => {
+      const div = document.createElement("div");
+      div.className = "option-card" + (index === selectedOptionIndex ? " selected" : "");
+
+      let title = "";
+      if (option.mode === "now" && option.type === "reservation") {
+        title = `Option ${index + 1}: Reservation`;
+      } else if (option.mode === "now") {
+        title = `Option ${index + 1}: Seat now`;
+      } else {
+        title = `Option ${index + 1}: Wait ${Math.max(0, option.startMin - virtualNowMin)} mins`;
+      }
+
+      div.innerHTML = `
+        <div class="option-title">${title}</div>
+        <div>Time: ${minutesToLabel(option.startMin)} - ${minutesToLabel(option.endMin)}</div>
+        <div>Tables: [${option.tables.join(", ")}]</div>
+        <div>${option.note}</div>
+      `;
+
+      div.addEventListener("click", () => selectOption(index));
+      container.appendChild(div);
+    });
+  }
+
+  function tablesAreFreeForEntry(entry, ignoreEntryId = null) {
+    for (const existing of getAllBlockingEntries()) {
+      if (ignoreEntryId && existing.id === ignoreEntryId) continue;
+      if (!overlap(entry.startMin, entry.endMin, existing.startMin, existing.endMin)) continue;
+      const sharedTable = entry.tables.some(t => existing.tables.includes(t));
+      if (sharedTable) return false;
+    }
+    return true;
+  }
+
+  function confirmSeatWaitingEntry(waitingId) {
+    const entry = waitingEntries.find(x => x.id === waitingId);
+    if (!entry) return;
+
+    const currentSuggestion = suggestWalkIn(virtualNowMin, entry.people, entry.maxMins, null);
+
+    if (!currentSuggestion.ok) {
+      const alternatives = findFutureSlots(
+        virtualNowMin,
+        entry.people,
+        "walkin",
+        entry.maxMins,
+        3,
+        null
+      );
+
+      if (alternatives.length > 0) {
+        const first = alternatives[0];
+        document.getElementById("result").innerText =
+          `⚠️ Cannot seat right now.\nNext estimate: ${minutesToLabel(first.startMin)} using [${first.tables.join(", ")}]\nWait: ${first.startMin - virtualNowMin} mins`;
+      } else {
+        document.getElementById("result").innerText =
+          "⚠️ Cannot seat right now, and no new option was found today.";
+      }
+      refreshMap();
+      return;
+    }
+
+    waitingEntries = waitingEntries.filter(x => x.id !== waitingId);
+    seatedEntries.push({
+      id: entry.id,
+      groupId: entry.groupId,
+      type: "walkin",
+      startMin: virtualNowMin,
+      endMin: currentSuggestion.endMin,
+      people: entry.people,
+      tables: currentSuggestion.tables,
+      note: `Moved from waiting list / ${currentSuggestion.note}`,
+      maxMins: entry.maxMins,
+      originalRequestedStart: entry.originalRequestedStart
+    });
+
+    renderAllLists();
+    refreshMap();
+    document.getElementById("result").innerText =
+      `✅ ${entry.groupId} moved from Waiting List to Seated.`;
+  }
+
+  function seatFutureReservationNow(reservationId) {
+    const entry = futureReservations.find(x => x.id === reservationId);
+    if (!entry) return;
+
+    const actualStart = Math.min(virtualNowMin, entry.startMin);
+    const actualEnd = entry.endMin;
+
+    const candidate = {
+      ...entry,
+      startMin: actualStart,
+      endMin: actualEnd
+    };
+
+    if (!tablesAreFreeForEntry(candidate, entry.id)) {
+      document.getElementById("result").innerText =
+        `⚠️ ${entry.groupId} cannot be seated now.\nThose tables are not free at ${minutesToLabel(virtualNowMin)}.`;
+      return;
+    }
+
+    futureReservations = futureReservations.filter(x => x.id !== reservationId);
+
+    seatedEntries.push({
+      id: entry.id,
+      groupId: entry.groupId,
+      type: "reservation",
+      startMin: actualStart,
+      endMin: actualEnd,
+      people: entry.people,
+      tables: entry.tables,
+      note: virtualNowMin < entry.startMin
+        ? `Seated early at ${minutesToLabel(virtualNowMin)}`
+        : `Seated at ${minutesToLabel(virtualNowMin)}`
+    });
+
+    renderAllLists();
+    refreshMap();
+    document.getElementById("result").innerText =
+      `✅ ${entry.groupId} moved from Future Reservations to Seated.`;
+  }
+
+  document.getElementById("type").addEventListener("change", () => {
+    const type = document.getElementById("type").value;
+    document.getElementById("walkinBlock").style.display =
+      type === "walkin" ? "block" : "none";
+  });
+
+  document.getElementById("btnSuggest").addEventListener("click", () => {
+    const startMin = Number(document.getElementById("start").value);
+    const people = Number(document.getElementById("people").value);
+    const type = document.getElementById("type").value;
+    const maxMins = Number(document.getElementById("maxMins").value);
+
+    clearSuggestionState();
+    document.getElementById("optionList").innerHTML = "";
+
+    const nowSuggestion = suggestTablesForNewEntry({ type, startMin, people, maxMins });
+
+    if (nowSuggestion.ok) {
+      suggestionOptions = [{
+        ...nowSuggestion,
+        type,
+        people,
+        mode: "now",
+        waitMins: 0,
+        maxMins,
+        originalRequestedStart: startMin
+      }];
+      selectOption(0);
+      return;
+    }
+
+    if (type === "walkin") {
+      const futureSuggestions = findFutureSlots(startMin, people, type, maxMins, 3)
+        .map(item => ({
+          ...item,
+          type,
+          people,
+          mode: "later",
+          maxMins,
+          originalRequestedStart: startMin,
+          note: `${item.note} / Wait time: ${item.waitMins} mins`
+        }));
+
+      if (futureSuggestions.length > 0) {
+        suggestionOptions = futureSuggestions;
+        selectOption(0);
+        return;
+      }
+    }
+
+    document.getElementById("result").innerText =
+      type === "reservation"
+        ? "❌ Cannot fit this reservation at that time."
+        : "❌ No suitable walk-in option later today for this request.";
+
+    refreshMap();
+  });
+
+  document.getElementById("btnAdd").addEventListener("click", () => {
+    if (!pendingSuggestion) {
+      document.getElementById("result").innerText = "⚠️ Please suggest first.";
+      return;
+    }
+
+    const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+
+    if (pendingSuggestion.type === "reservation") {
+      futureReservations.push({
+        id,
+        groupId: pendingSuggestion.groupId,
+        type: "reservation",
+        startMin: pendingSuggestion.startMin,
+        endMin: pendingSuggestion.endMin,
+        people: pendingSuggestion.people,
+        tables: pendingSuggestion.tables,
+        note: pendingSuggestion.note
+      });
+
+      document.getElementById("result").innerText =
+        `✅ Added to Future Reservations\n${pendingSuggestion.groupId} / ${pendingSuggestion.people} people at ${minutesToLabel(pendingSuggestion.startMin)} using [${pendingSuggestion.tables.join(", ")}]`;
+
+    } else if (pendingSuggestion.mode === "now") {
+      seatedEntries.push({
+        id,
+        groupId: pendingSuggestion.groupId,
+        type: "walkin",
+        startMin: pendingSuggestion.startMin,
+        endMin: pendingSuggestion.endMin,
+        people: pendingSuggestion.people,
+        tables: pendingSuggestion.tables,
+        note: pendingSuggestion.note,
+        maxMins: pendingSuggestion.maxMins,
+        originalRequestedStart: pendingSuggestion.originalRequestedStart
+      });
+
+      document.getElementById("result").innerText =
+        `✅ Added to Seated\n${pendingSuggestion.groupId} / ${pendingSuggestion.people} people at ${minutesToLabel(pendingSuggestion.startMin)} using [${pendingSuggestion.tables.join(", ")}]`;
+
+    } else {
+      waitingEntries.push({
+        id,
+        groupId: pendingSuggestion.groupId,
+        type: "walkin",
+        startMin: pendingSuggestion.startMin,
+        endMin: pendingSuggestion.endMin,
+        people: pendingSuggestion.people,
+        tables: pendingSuggestion.tables,
+        note: pendingSuggestion.note,
+        waitMins: pendingSuggestion.waitMins,
+        maxMins: pendingSuggestion.maxMins,
+        originalRequestedStart: pendingSuggestion.originalRequestedStart
+      });
+
+      document.getElementById("result").innerText =
+        `✅ Added to Waiting List\n${pendingSuggestion.groupId} / ${pendingSuggestion.people} people\nEstimated seat time: ${minutesToLabel(pendingSuggestion.startMin)}\nEstimated wait: ${Math.max(0, pendingSuggestion.startMin - virtualNowMin)} mins`;
+    }
+
+    reservationCounter += 1;
+    clearSuggestionState();
+    renderOptionList();
+    renderAllLists();
+    refreshMap();
+  });
+
+  document.getElementById("btnClearSuggest").addEventListener("click", () => {
+    clearSuggestionState();
+    document.getElementById("result").innerText = "";
+    renderOptionList();
+    refreshMap();
+  });
+
+  document.getElementById("minus30").addEventListener("click", () => adjustClock(-30));
+  document.getElementById("minus5").addEventListener("click", () => adjustClock(-5));
+  document.getElementById("plus5").addEventListener("click", () => adjustClock(5));
+  document.getElementById("plus30").addEventListener("click", () => adjustClock(30));
+  document.getElementById("resetClock").addEventListener("click", resetClockToReal);
+
+  updateVirtualClockText();
+  generateTimes();
+  renderAllLists();
+  renderOptionList();
+  refreshMap();
+</script>
+
+</body>
+</html>
