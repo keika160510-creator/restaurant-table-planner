@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0059)file:///C:/Users/hamas/Downloads/restaurant_planner_10.html -->
+<!-- saved from url=(0059)file:///C:/Users/hamas/Downloads/restaurant_planner_14.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -226,6 +226,10 @@ const LANG = {
     estWaitReached:"Est. time reached or passed", estWaitLeft:"Est. wait left:",
     reservedTime:"Reserved time:",
     btnSeatNow:"Seat Now", btnSeatEarly:"Seat Early", btnDelete:"Delete", btnEdit:"Edit",
+    labelDuration:"Duration(min)", labelMoveTo:"Move tables to",
+    btnMove:"Move", warnTableInput:"Enter table numbers separated by commas (e.g. 1,2)",
+    warnTablesFull:"⚠️ Those tables are not available at that time.",
+    movedTables:"Tables updated.",
     legendFree:"Free", legendUsed:"Now in use", legendFuture:"Upcoming reservation", legendWaiting:"Waiting (unconfirmed)", legendAvail:"Available now", legendNext:"Selected wait",
     opt:"Option", optRes:"Reservation", optNow:"Seat now", optWait:"Wait",
     okRes:"🟢 Reservation can be booked", okWalk:"🟢 Walk-in can be seated now",
@@ -263,6 +267,10 @@ const LANG = {
     estWaitReached:"予定時刻に達しました", estWaitLeft:"推定残り待ち時間:",
     reservedTime:"予約時間:",
     btnSeatNow:"今すぐ着席", btnSeatEarly:"早期着席", btnDelete:"削除", btnEdit:"編集",
+    labelDuration:"時間（分）", labelMoveTo:"テーブル変更先",
+    btnMove:"移動", warnTableInput:"テーブル番号をカンマ区切りで入力（例: 1,2）",
+    warnTablesFull:"⚠️ その時間帯にそのテーブルは空いていません。",
+    movedTables:"テーブルを変更しました。",
     legendFree:"空き", legendUsed:"使用中", legendFuture:"予約あり（未開始）", legendWaiting:"ウェイティング", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
     opt:"選択肢", optRes:"予約", optNow:"今すぐ着席", optWait:"待機",
     okRes:"🟢 予約可能です", okWalk:"🟢 今すぐ着席できます",
@@ -296,10 +304,11 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
     <div><label id="labelName">お名前</label><input id="guestName" type="text" style="width:165px;" placeholder="お客様名"></div>
     <div><label id="labelStart">開始</label><select id="start"><option value="690">11:30</option><option value="695">11:35</option><option value="700">11:40</option><option value="705">11:45</option><option value="710">11:50</option><option value="715">11:55</option><option value="720">12:00</option><option value="725">12:05</option><option value="730">12:10</option><option value="735">12:15</option><option value="740">12:20</option><option value="745">12:25</option><option value="750">12:30</option><option value="755">12:35</option><option value="760">12:40</option><option value="765">12:45</option><option value="770">12:50</option><option value="775">12:55</option><option value="780">13:00</option><option value="785">13:05</option><option value="790">13:10</option><option value="795">13:15</option><option value="800">13:20</option><option value="805">13:25</option><option value="810">13:30</option><option value="815">13:35</option><option value="820">13:40</option><option value="825">13:45</option><option value="830">13:50</option><option value="835">13:55</option><option value="840">14:00</option><option value="845">14:05</option><option value="850">14:10</option><option value="990">16:30</option><option value="995">16:35</option><option value="1000">16:40</option><option value="1005">16:45</option><option value="1010">16:50</option><option value="1015">16:55</option><option value="1020">17:00</option><option value="1025">17:05</option><option value="1030">17:10</option><option value="1035">17:15</option><option value="1040">17:20</option><option value="1045">17:25</option><option value="1050">17:30</option><option value="1055">17:35</option><option value="1060">17:40</option><option value="1065">17:45</option><option value="1070">17:50</option><option value="1075">17:55</option><option value="1080">18:00</option><option value="1085">18:05</option><option value="1090">18:10</option><option value="1095">18:15</option><option value="1100">18:20</option><option value="1105">18:25</option><option value="1110">18:30</option><option value="1115">18:35</option><option value="1120">18:40</option><option value="1125">18:45</option><option value="1130">18:50</option><option value="1135">18:55</option><option value="1140">19:00</option><option value="1145">19:05</option><option value="1150">19:10</option><option value="1155">19:15</option><option value="1160">19:20</option><option value="1165">19:25</option><option value="1170">19:30</option><option value="1175">19:35</option><option value="1180">19:40</option><option value="1185">19:45</option><option value="1190">19:50</option><option value="1195">19:55</option><option value="1200">20:00</option><option value="1205">20:05</option><option value="1210">20:10</option><option value="1215">20:15</option><option value="1220">20:20</option><option value="1225">20:25</option><option value="1230">20:30</option><option value="1235">20:35</option><option value="1240">20:40</option><option value="1245">20:45</option><option value="1250">20:50</option><option value="1255">20:55</option><option value="1260">21:00</option><option value="1265">21:05</option><option value="1270">21:10</option><option value="1275">21:15</option></select></div>
     <div><label id="labelPeople">人数</label><input id="people" type="number" min="1" max="20" value="4" style="width:55px;"></div>
+    <div id="durationBlock" style="display: none;"><label id="labelDuration">時間（分）</label><input id="duration" type="number" min="30" max="240" step="10" value="120" style="width:55px;"> <span class="small">分</span></div>
     <div><label id="labelType">種別</label>
       <select id="type"><option value="reservation" id="optRes">予約</option><option value="walkin" id="optWalk">ウォークイン</option></select>
     </div>
-    <div id="walkinBlock" style="display: none;">
+    <div id="walkinBlock" style="display: block;">
       <label id="labelMaxMins">最大時間</label>
       <input id="maxMins" type="number" min="60" max="120" step="5" value="60" style="width:55px;">
       <span class="small" id="maxMinsHint">最低60分</span>
@@ -353,7 +362,7 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
 
   <!-- Clock box: rightmost column -->
   <div class="clock-box">
-    <span class="clock-main" id="virtualClock">仮想時刻: 17:16</span>
+    <span class="clock-main" id="virtualClock">仮想時刻: 16:30</span>
     <span class="small" id="clockHint">← この時計を基準に残り時間や開始時刻を計算</span>
     <div class="clock-btns">
       <button id="minus30">-30分</button><button id="minus5">-5分</button>
@@ -368,9 +377,19 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3 id="editModalTitle">編集</h3>
-    <div class="modal-row"><label id="editLabelName">お名前</label><input id="editName" type="text" style="width:160px;"></div>
-    <div class="modal-row"><label id="editLabelStart">開始</label><select id="editStart"><option value="690">11:30</option><option value="695">11:35</option><option value="700">11:40</option><option value="705">11:45</option><option value="710">11:50</option><option value="715">11:55</option><option value="720">12:00</option><option value="725">12:05</option><option value="730">12:10</option><option value="735">12:15</option><option value="740">12:20</option><option value="745">12:25</option><option value="750">12:30</option><option value="755">12:35</option><option value="760">12:40</option><option value="765">12:45</option><option value="770">12:50</option><option value="775">12:55</option><option value="780">13:00</option><option value="785">13:05</option><option value="790">13:10</option><option value="795">13:15</option><option value="800">13:20</option><option value="805">13:25</option><option value="810">13:30</option><option value="815">13:35</option><option value="820">13:40</option><option value="825">13:45</option><option value="830">13:50</option><option value="835">13:55</option><option value="840">14:00</option><option value="845">14:05</option><option value="850">14:10</option><option value="990">16:30</option><option value="995">16:35</option><option value="1000">16:40</option><option value="1005">16:45</option><option value="1010">16:50</option><option value="1015">16:55</option><option value="1020">17:00</option><option value="1025">17:05</option><option value="1030">17:10</option><option value="1035">17:15</option><option value="1040">17:20</option><option value="1045">17:25</option><option value="1050">17:30</option><option value="1055">17:35</option><option value="1060">17:40</option><option value="1065">17:45</option><option value="1070">17:50</option><option value="1075">17:55</option><option value="1080">18:00</option><option value="1085">18:05</option><option value="1090">18:10</option><option value="1095">18:15</option><option value="1100">18:20</option><option value="1105">18:25</option><option value="1110">18:30</option><option value="1115">18:35</option><option value="1120">18:40</option><option value="1125">18:45</option><option value="1130">18:50</option><option value="1135">18:55</option><option value="1140">19:00</option><option value="1145">19:05</option><option value="1150">19:10</option><option value="1155">19:15</option><option value="1160">19:20</option><option value="1165">19:25</option><option value="1170">19:30</option><option value="1175">19:35</option><option value="1180">19:40</option><option value="1185">19:45</option><option value="1190">19:50</option><option value="1195">19:55</option><option value="1200">20:00</option><option value="1205">20:05</option><option value="1210">20:10</option><option value="1215">20:15</option><option value="1220">20:20</option><option value="1225">20:25</option><option value="1230">20:30</option><option value="1235">20:35</option><option value="1240">20:40</option><option value="1245">20:45</option><option value="1250">20:50</option><option value="1255">20:55</option><option value="1260">21:00</option><option value="1265">21:05</option><option value="1270">21:10</option><option value="1275">21:15</option></select></div>
-    <div class="modal-row"><label id="editLabelPeople">人数</label><input id="editPeople" type="number" min="1" max="20" style="width:55px;"></div>
+    <div class="modal-row"><label id="editLabelName"></label><input id="editName" type="text" style="width:160px;"></div>
+    <div class="modal-row"><label id="editLabelStart"></label><select id="editStart"></select></div>
+    <div class="modal-row"><label id="editLabelDuration">時間（分）</label><input id="editDuration" type="number" min="30" max="240" step="10" style="width:60px;"> <span class="small">分</span></div>
+    <div class="modal-row"><label id="editLabelPeople"></label><input id="editPeople" type="number" min="1" max="20" style="width:55px;"></div>
+    <hr style="margin:10px 0; border-color:#eee;">
+    <div class="modal-row" style="align-items:flex-start;">
+      <label id="editLabelMoveTo" style="margin-top:3px;">テーブル変更先</label>
+      <div>
+        <input id="editMoveTo" type="text" placeholder="例: 1,2" style="width:120px;">
+        <button id="editMoveBtn" style="margin-left:4px;padding:3px 8px;font-size:11px;">移動</button>
+        <div id="editMoveHint" class="small" style="margin-top:2px;color:#888;"></div>
+      </div>
+    </div>
     <div class="modal-btns">
       <button id="editCancel">キャンセル</button>
       <button class="btn-save" id="editSave">保存</button>
@@ -410,6 +429,10 @@ function applyLang(){
     lgFree:"legendFree",lgUsed:"legendUsed",lgFuture:"legendFuture",lgWaiting:"legendWaiting",lgAvail:"legendAvail",lgNext:"legendNext"};
   for(const[id,key]of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=t(key);}
   document.getElementById("guestName").placeholder=t("namePh");
+  document.getElementById("labelDuration").textContent=t("labelDuration");
+  document.getElementById("editLabelDuration").textContent=t("labelDuration");
+  document.getElementById("editLabelMoveTo").textContent=t("labelMoveTo");
+  document.getElementById("editMoveBtn").textContent=t("btnMove");
   const caps={1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:4,10:4,"11A":2,"11B":2,"12A":2,"12B":2};
   for(const[id,c]of Object.entries(caps)){const el=document.getElementById("cap"+id);if(el)el.textContent=c+" "+t("seats");}
   updateVirtualClockText();
@@ -573,7 +596,10 @@ function renderSeatedList(){
     const item=mkListItem(r,"seated",{
       title:`<b>${r.type==="reservation"?t("typeLabelRes"):t("typeLabelWalk")}</b> — ${r.people} ${t("people")}`,
       rows:[`${t("timeLabel")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("tablesLabel")} ${r.tables.join(", ")}`,seatedStatus(r)]
-    },[{action:"delete",label:t("btnDelete"),fn:()=>{seatedEntries=seatedEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    },[
+      {action:"edit",  label:t("btnEdit"),  fn:()=>openEditModal(r.id,"seated")},
+      {action:"delete",label:t("btnDelete"),fn:()=>{seatedEntries=seatedEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}
+    ]);
     c.appendChild(item);
   }
 }
@@ -636,31 +662,50 @@ function tablesAreFree(entry,ig=null){for(const ex of getAllBlockingEntries()){i
 /* ===== 編集モーダル ===== */
 let editTargetId=null, editTargetType=null;
 
-function openEditModal(id, type){
-  const arr=type==="future"?futureReservations:waitingEntries;
-  const r=arr.find(x=>x.id===id); if(!r)return;
+function getEntryById(id,type){
+  if(type==="future")  return futureReservations.find(x=>x.id===id);
+  if(type==="waiting") return waitingEntries.find(x=>x.id===id);
+  if(type==="seated")  return seatedEntries.find(x=>x.id===id);
+  return null;
+}
+
+function openEditModal(id,type){
+  const r=getEntryById(id,type); if(!r)return;
   editTargetId=id; editTargetType=type;
 
-  // モーダルのラベルを現在言語に合わせる
   document.getElementById("editModalTitle").textContent=t("btnEdit");
   document.getElementById("editLabelName").textContent=t("labelName");
   document.getElementById("editLabelStart").textContent=t("labelStart");
+  document.getElementById("editLabelDuration").textContent=t("labelDuration");
   document.getElementById("editLabelPeople").textContent=t("labelPeople");
+  document.getElementById("editLabelMoveTo").textContent=t("labelMoveTo");
+  document.getElementById("editMoveBtn").textContent=t("btnMove");
+  document.getElementById("editMoveHint").textContent=t("warnTableInput");
   document.getElementById("editSave").textContent=currentLang==="ja"?"保存":"Save";
   document.getElementById("editCancel").textContent=currentLang==="ja"?"キャンセル":"Cancel";
 
-  // 現在の値をセット
   document.getElementById("editName").value=r.guestName||"";
   document.getElementById("editPeople").value=r.people;
+  document.getElementById("editDuration").value=r.endMin-r.startMin;
+  document.getElementById("editMoveTo").value=r.tables.join(",");
 
-  // 時刻セレクトを生成
-  const sel=document.getElementById("editStart"); sel.innerHTML="";
-  for(const m of getAllBusinessTimes()){
+  // 着席中は時刻変更不可
+  const startSel=document.getElementById("editStart");
+  startSel.innerHTML="";
+  if(type==="seated"){
     const o=document.createElement("option");
-    o.value=m; o.textContent=minutesToLabel(m);
-    sel.appendChild(o);
+    o.value=r.startMin; o.textContent=minutesToLabel(r.startMin);
+    startSel.appendChild(o);
+    startSel.disabled=true;
+  }else{
+    startSel.disabled=false;
+    for(const m of getAllBusinessTimes()){
+      const o=document.createElement("option");
+      o.value=m; o.textContent=minutesToLabel(m);
+      startSel.appendChild(o);
+    }
+    startSel.value=String(r.startMin);
   }
-  sel.value=String(r.startMin);
 
   document.getElementById("editModal").classList.add("open");
 }
@@ -675,31 +720,53 @@ document.getElementById("editModal").addEventListener("click",(e)=>{
   if(e.target===document.getElementById("editModal"))closeEditModal();
 });
 
+// テーブル移動ボタン
+document.getElementById("editMoveBtn").addEventListener("click",()=>{
+  if(!editTargetId)return;
+  const r=getEntryById(editTargetId,editTargetType); if(!r)return;
+  const raw=document.getElementById("editMoveTo").value.trim();
+  const newTables=raw.split(",").map(x=>x.trim()).filter(x=>TABLES.some(tb=>tb.id===x));
+  if(!newTables.length){document.getElementById("editMoveHint").textContent="⚠️ "+t("warnTableInput");return;}
+  const duration=r.endMin-r.startMin;
+  const candidate={...r,tables:newTables};
+  if(!tablesAreFree(candidate,r.id)){
+    document.getElementById("editMoveHint").textContent=t("warnTablesFull");return;
+  }
+  r.tables=newTables;
+  document.getElementById("editMoveHint").textContent="✅ "+t("movedTables");
+  renderAllLists();refreshMap();
+});
+
 document.getElementById("editSave").addEventListener("click",()=>{
   if(!editTargetId)return;
-  const arr=editTargetType==="future"?futureReservations:waitingEntries;
-  const r=arr.find(x=>x.id===editTargetId); if(!r)return;
+  const r=getEntryById(editTargetId,editTargetType); if(!r)return;
 
   const newName=document.getElementById("editName").value.trim();
   const newStart=Number(document.getElementById("editStart").value);
+  const newDuration=Math.max(30,Number(document.getElementById("editDuration").value));
   const newPeople=Number(document.getElementById("editPeople").value);
-  const duration=r.endMin-r.startMin;
 
   r.guestName=newName;
   r.people=newPeople;
-  r.startMin=newStart;
-  r.endMin=newStart+duration;
+  if(editTargetType!=="seated") r.startMin=newStart;
+  r.endMin=(editTargetType==="seated"?r.startMin:newStart)+newDuration;
 
   closeEditModal();
-  renderAllLists(); refreshMap();
+  renderAllLists();refreshMap();
   document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${currentLang==="ja"?"を更新しました":"updated."}`;
 });
 function confirmSeatWaiting(wid){
   const r=waitingEntries.find(x=>x.id===wid);if(!r)return;
-  const sg=suggestWalkIn(virtualNowMin,r.people,r.maxMins,null);
-  if(!sg.ok){const alts=findFuture(virtualNowMin,r.people,"walkin",r.maxMins,3,null);if(alts.length){const f=alts[0];document.getElementById("result").innerText=`${t("warnSeat")} ${minutesToLabel(f.startMin)} [${f.tables.join(", ")}]\n${t("warnWait")} ${f.startMin-virtualNowMin} ${t("mins")}`;}else document.getElementById("result").innerText=t("warnNoOption");refreshMap();return;}
+  // 自分自身のエントリをignoreしてから空き確認
+  const sg=suggestWalkIn(virtualNowMin,r.people,r.maxMins||60,wid);
+  if(!sg.ok){
+    const alts=findFuture(virtualNowMin,r.people,"walkin",r.maxMins||60,3,wid);
+    if(alts.length){const f=alts[0];document.getElementById("result").innerText=`${t("warnSeat")} ${minutesToLabel(f.startMin)} [${f.tables.join(", ")}]\n${t("warnWait")} ${f.startMin-virtualNowMin} ${t("mins")}`;}
+    else document.getElementById("result").innerText=t("warnNoOption");
+    refreshMap();return;
+  }
   waitingEntries=waitingEntries.filter(x=>x.id!==wid);
-  seatedEntries.push({id:r.id,groupId:r.groupId,guestName:r.guestName,type:"walkin",startMin:virtualNowMin,endMin:sg.endMin,people:r.people,tables:sg.tables,note:`${t("movedFromWaiting")} ${sg.note}`,maxMins:r.maxMins,originalRequestedStart:r.originalRequestedStart});
+  seatedEntries.push({id:r.id,groupId:r.groupId,guestName:r.guestName,type:"walkin",startMin:virtualNowMin,endMin:virtualNowMin+(r.maxMins||60),people:r.people,tables:sg.tables,note:`${t("movedFromWaiting")} ${sg.note}`,maxMins:r.maxMins,originalRequestedStart:r.originalRequestedStart});
   renderAllLists();refreshMap();document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${t("movedSeated")}`;
 }
 function seatFutureNow(rid){
@@ -711,17 +778,27 @@ function seatFutureNow(rid){
   renderAllLists();refreshMap();document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${t("movedFutureSeated")}`;
 }
 
-document.getElementById("type").addEventListener("change",()=>{document.getElementById("walkinBlock").style.display=document.getElementById("type").value==="walkin"?"block":"none";});
+document.getElementById("type").addEventListener("change",()=>{
+  const isWalkin=document.getElementById("type").value==="walkin";
+  document.getElementById("walkinBlock").style.display=isWalkin?"block":"none";
+  document.getElementById("durationBlock").style.display=isWalkin?"none":"block";
+});
 document.getElementById("btnSuggest").addEventListener("click",()=>{
   const startMin=Number(document.getElementById("start").value);
   const people=Number(document.getElementById("people").value);
   const type=document.getElementById("type").value;
   const maxMins=Number(document.getElementById("maxMins").value);
+  const duration=Math.max(30,Number(document.getElementById("duration").value)||120);
   const guestName=document.getElementById("guestName").value.trim();
   clearSug();document.getElementById("optionList").innerHTML="";
   const sg=suggestEntry({type,startMin,people,maxMins});
-  if(sg.ok){suggestionOptions=[{...sg,type,people,mode:"now",waitMins:0,maxMins,originalRequestedStart:startMin,guestName}];selectOption(0);return;}
-  if(type==="walkin"){const fs=findFuture(startMin,people,type,maxMins,3).map(x=>({...x,type,people,mode:"later",maxMins,originalRequestedStart:startMin,guestName,note:`${x.note}/Wait:${x.waitMins}m`}));if(fs.length){suggestionOptions=fs;selectOption(0);return;}}
+  if(sg.ok){
+    // durationを反映してendMinを上書き
+    sg.endMin=startMin+duration;
+    suggestionOptions=[{...sg,type,people,mode:"now",waitMins:0,maxMins,originalRequestedStart:startMin,guestName}];
+    selectOption(0);return;
+  }
+  if(type==="walkin"){const fs=findFuture(startMin,people,type,maxMins,3).map(x=>({...x,endMin:x.startMin+duration,type,people,mode:"later",maxMins,originalRequestedStart:startMin,guestName,note:`${x.note}/Wait:${x.waitMins}m`}));if(fs.length){suggestionOptions=fs;selectOption(0);return;}}
   document.getElementById("result").innerText=type==="reservation"?t("errRes"):t("errWalk");refreshMap();
 });
 document.getElementById("btnAdd").addEventListener("click",()=>{
