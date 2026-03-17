@@ -94,25 +94,75 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 .table-10  { width: 108px; height: 86px; }
 .table-r   { width: 90px;  height: 70px; }
 
-.free     { background: #f7f7f7; }
-.used     { background: #ffd6d6; }
-.suggested{ background: #d6ffe2; }
-.next-up  { background: #dbeafe; }
+.free        { background: #f7f7f7; border-color: #aaa; }
+.used        { background: #ffd6d6; border-color: #e88; }
+.future-res  { background: #e8f0ff; border-color: #99b; }
+.suggested   { background: #d6ffe2; border-color: #6c6; }
+.next-up     { background: #dbeafe; border-color: #88c; }
 
 .table-name { font-size: 13px; font-weight: 700; line-height: 1; margin-top: 1px; }
 .capacity   { font-size: 8px; color: #666; margin-top: 0; line-height: 1; }
 /* 2席テーブルは席数表示なし */
 .table-sm .capacity, .table-r .capacity { display: none; }
-.time-label { font-size: 7px; color: #333; margin-top: 3px; line-height: 1.2; white-space: pre-line; width: 100%; }
-.entry-line { display: block; margin-top: 0px; line-height: 1.15; }
-.entry-name { font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 7.5px; }
-.entry-time { display: block; font-size: 6.5px; color: #555; }
-.more-label { font-size: 6.5px; color: #555; margin-top: 1px; }
+
+/* テーブルカード内の予約表示エリア */
+.time-label {
+  margin-top: 2px;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: row; /* 2件のとき横並び */
+  gap: 1px;
+  overflow: hidden;
+}
+
+/* 1件のみのとき: 全幅使う */
+.entry-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 2px;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* 2件のとき境界線 */
+.time-label.two-entries .entry-block:first-child {
+  border-right: 1px solid #ccc;
+}
+
+.entry-name {
+  font-weight: 700;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.2;
+}
+.entry-time {
+  display: block;
+  font-size: 6.5px;
+  color: #555;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.more-label { font-size: 6px; color: #888; text-align: center; }
+
+/* 使用中エントリは文字を濃く */
+.entry-block.active .entry-name { font-size: 8.5px; }
+.entry-block.active .entry-time { color: #333; }
 
 /* Larger text for table 9 & 10 */
 .table-9  .table-name, .table-10 .table-name { font-size: 15px; }
 .table-9  .capacity,   .table-10 .capacity   { font-size: 9px; }
-.table-9  .entry-name, .table-10 .entry-name { font-size: 9px; }
+.table-9  .entry-name, .table-10 .entry-name { font-size: 9.5px; }
 .table-9  .entry-time, .table-10 .entry-time { font-size: 7.5px; }
 
 .wall {
@@ -121,10 +171,11 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 }
 .legend { display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; font-size: 11px; }
 .dot { width: 11px; height: 11px; border-radius: 3px; border: 1px solid #555; display: inline-block; }
-.dot.free     { background: #f7f7f7; }
-.dot.used     { background: #ffd6d6; }
-.dot.suggested{ background: #d6ffe2; }
-.dot.next-up  { background: #dbeafe; }
+.dot.free        { background: #f7f7f7; }
+.dot.used        { background: #ffd6d6; }
+.dot.future-res  { background: #e8f0ff; }
+.dot.suggested   { background: #d6ffe2; }
+.dot.next-up     { background: #dbeafe; }
 input#guestName { border: 1.5px solid #2563eb55; }
 </style>
 </head>
@@ -153,7 +204,7 @@ const LANG = {
     estWaitReached:"Est. time reached or passed", estWaitLeft:"Est. wait left:",
     reservedTime:"Reserved time:",
     btnSeatNow:"Seat Now", btnSeatEarly:"Seat Early", btnDelete:"Delete",
-    legendFree:"Free", legendUsed:"Used/blocked", legendAvail:"Available now", legendNext:"Selected wait",
+    legendFree:"Free", legendUsed:"Now in use", legendFuture:"Upcoming reservation", legendAvail:"Available now", legendNext:"Selected wait",
     opt:"Option", optRes:"Reservation", optNow:"Seat now", optWait:"Wait",
     okRes:"🟢 Reservation can be booked", okWalk:"🟢 Walk-in can be seated now",
     waitSel:"⏳ Waiting option selected\nEst. seat time:", waitAnd:"tables:", waitTime:"\nEst. wait:", mins:"mins",
@@ -190,7 +241,7 @@ const LANG = {
     estWaitReached:"予定時刻に達しました", estWaitLeft:"推定残り待ち時間:",
     reservedTime:"予約時間:",
     btnSeatNow:"今すぐ着席", btnSeatEarly:"早期着席", btnDelete:"削除",
-    legendFree:"空き", legendUsed:"使用中", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
+    legendFree:"空き", legendUsed:"使用中", legendFuture:"予約あり（未開始）", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
     opt:"選択肢", optRes:"予約", optNow:"今すぐ着席", optWait:"待機",
     okRes:"🟢 予約可能です", okWalk:"🟢 今すぐ着席できます",
     waitSel:"⏳ 待機案を選択中\n着席予定:", waitAnd:"テーブル:", waitTime:"\n推定待ち時間:", mins:"分",
@@ -271,6 +322,7 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
     <div class="legend">
       <span><span class="dot free"></span> <span id="lgFree"></span></span>
       <span><span class="dot used"></span> <span id="lgUsed"></span></span>
+      <span><span class="dot future-res"></span> <span id="lgFuture"></span></span>
       <span><span class="dot suggested"></span> <span id="lgAvail"></span></span>
       <span><span class="dot next-up"></span> <span id="lgNext"></span></span>
     </div>
@@ -318,7 +370,7 @@ function applyLang(){
     maxMinsHint:"maxMinsHint",btnSuggest:"btnSuggest",btnAdd:"btnAdd",btnClearSuggest:"btnClear",
     seatedTitle:"seatedTitle",seatedHint:"seatedHint",waitTitle:"waitTitle",waitHint:"waitHint",
     futureTitle:"futureTitle",futureHint:"futureHint",mapTitle:"mapTitle",
-    lgFree:"legendFree",lgUsed:"legendUsed",lgAvail:"legendAvail",lgNext:"legendNext"};
+    lgFree:"legendFree",lgUsed:"legendUsed",lgFuture:"legendFuture",lgAvail:"legendAvail",lgNext:"legendNext"};
   for(const[id,key]of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=t(key);}
   document.getElementById("guestName").placeholder=t("namePh");
   const caps={1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:4,10:4,"11A":2,"11B":2,"12A":2,"12B":2};
@@ -400,28 +452,93 @@ function findFuture(startMin,people,type,maxMins,limit=3,ig=null){
   return results;
 }
 
-function setTableClass(id,cls){const el=document.getElementById("t"+id);if(!el)return;el.classList.remove("free","used","suggested","next-up");el.classList.add(cls);}
+function setTableClass(id,cls){
+  const el=document.getElementById("t"+id);
+  if(!el)return;
+  el.classList.remove("free","used","future-res","suggested","next-up");
+  el.classList.add(cls);
+}
+
 function updateTableTimeLabels(){
   const blocking=getAllBlockingEntries();
   for(const tb of TABLES){
     const tl=document.getElementById(`time-${tb.id}`),ml=document.getElementById(`more-${tb.id}`);
     if(!tl||!ml)continue;
-    let entries=blocking.filter(r=>r.tables.includes(tb.id)).map(r=>({groupId:r.groupId,guestName:r.guestName,startMin:r.startMin,endMin:r.endMin}));
-    if(pendingSuggestion&&pendingSuggestion.previewBlocksTables&&pendingSuggestion.tables.includes(tb.id))
-      entries.push({groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin});
+
+    // 現在時刻に関係ある予約のみ（過去に終わったものは除外）
+    let entries=blocking
+      .filter(r=>r.tables.includes(tb.id) && r.endMin > virtualNowMin)
+      .map(r=>({
+        groupId:r.groupId, guestName:r.guestName,
+        startMin:r.startMin, endMin:r.endMin,
+        active: virtualNowMin >= r.startMin && virtualNowMin < r.endMin
+      }));
+
+    // pendingSuggestion プレビュー
+    if(pendingSuggestion&&pendingSuggestion.previewBlocksTables&&pendingSuggestion.tables.includes(tb.id)){
+      entries.push({
+        groupId:pendingSuggestion.groupId, guestName:pendingSuggestion.guestName,
+        startMin:pendingSuggestion.startMin, endMin:pendingSuggestion.endMin,
+        active: virtualNowMin >= pendingSuggestion.startMin && virtualNowMin < pendingSuggestion.endMin
+      });
+    }
+
     entries.sort((a,b)=>a.startMin-b.startMin);
-    if(!entries.length){tl.innerHTML="";ml.textContent="";continue;}
-    const vis=entries.slice(0,2),hid=entries.length-vis.length;
-    tl.innerHTML=vis.map(e=>{const c=getColorForGroup(e.groupId),nm=e.guestName&&e.guestName.trim()?e.guestName.trim():e.groupId;return`<span class="entry-line"><span class="entry-name" style="color:${c};">${nm}</span><span class="entry-time">${minutesToLabel(e.startMin)}–${minutesToLabel(e.endMin)}</span></span>`;}).join("");
+
+    if(!entries.length){
+      tl.className="time-label";
+      tl.innerHTML=""; ml.textContent=""; continue;
+    }
+
+    const vis=entries.slice(0,2), hid=entries.length-vis.length;
+
+    tl.className="time-label" + (vis.length===2?" two-entries":"");
+    tl.innerHTML=vis.map(e=>{
+      const c=getColorForGroup(e.groupId);
+      const nm=e.guestName&&e.guestName.trim()?e.guestName.trim():e.groupId;
+      const activeCls=e.active?" active":"";
+      return `<div class="entry-block${activeCls}">
+        <span class="entry-name" style="color:${c};">${nm}</span>
+        <span class="entry-time">${minutesToLabel(e.startMin)}–${minutesToLabel(e.endMin)}</span>
+      </div>`;
+    }).join("");
     ml.textContent=hid>0?`+${hid} ${t("more")}`:"";
   }
 }
+
 function refreshMap(){
+  // まずすべてリセット
   TABLES.forEach(tb=>setTableClass(tb.id,"free"));
-  const used=new Set();getAllBlockingEntries().forEach(r=>r.tables.forEach(x=>used.add(x)));
-  used.forEach(x=>setTableClass(x,"used"));
-  suggestedTables.forEach(x=>{if(!used.has(x))setTableClass(x,"suggested");});
-  nextAvailableTables.forEach(x=>{if(!used.has(x))setTableClass(x,"next-up");});
+
+  // 仮想時刻基準で色分け
+  const blocking=getAllBlockingEntries();
+  for(const tb of TABLES){
+    // 現在使用中
+    const isActive=blocking.some(r=>
+      r.tables.includes(tb.id) &&
+      virtualNowMin >= r.startMin &&
+      virtualNowMin < r.endMin
+    );
+    // 未来の予約あり（まだ始まっていない）
+    const hasFuture=blocking.some(r=>
+      r.tables.includes(tb.id) &&
+      r.startMin > virtualNowMin
+    );
+
+    if(isActive) setTableClass(tb.id,"used");
+    else if(hasFuture) setTableClass(tb.id,"future-res");
+  }
+
+  // 提案・選択中のオーバーレイ
+  suggestedTables.forEach(x=>{
+    const el=document.getElementById("t"+x);
+    if(el&&!el.classList.contains("used")) setTableClass(x,"suggested");
+  });
+  nextAvailableTables.forEach(x=>{
+    const el=document.getElementById("t"+x);
+    if(el&&!el.classList.contains("used")) setTableClass(x,"next-up");
+  });
+
   updateTableTimeLabels();
 }
 function clearSug(){suggestedTables=[];nextAvailableTables=[];pendingSuggestion=null;suggestionOptions=[];selectedOptionIndex=-1;}
