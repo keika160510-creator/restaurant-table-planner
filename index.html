@@ -76,10 +76,10 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 .left-col { display: flex; flex-direction: column; gap: 4px; }
 
 /* Middle col: table9 | wall | table10 side by side */
-.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 171px; }
+.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 195px; }
 
 /* Right: 2×2 grid for 11A/B, 12A/B */
-.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 141px; }
+.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 165px; }
 
 /* Base table card */
 .table {
@@ -89,7 +89,7 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
   user-select: none; text-align: center;
   padding: 3px 2px 2px; overflow: hidden;
 }
-.table-sm  { width: 112px; height: 50px; }
+.table-sm  { width: 112px; height: 56px; }
 .table-9   { width: 108px; height: 86px; }
 .table-10  { width: 108px; height: 86px; }
 .table-r   { width: 90px;  height: 70px; }
@@ -101,8 +101,10 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 
 .table-name { font-size: 13px; font-weight: 700; line-height: 1; margin-top: 1px; }
 .capacity   { font-size: 8px; color: #666; margin-top: 0; line-height: 1; }
-.time-label { font-size: 7px; color: #333; margin-top: 2px; line-height: 1.2; white-space: pre-line; width: 100%; }
-.entry-line { display: block; margin-top: 1px; line-height: 1.2; }
+/* 2席テーブルは席数表示なし */
+.table-sm .capacity, .table-r .capacity { display: none; }
+.time-label { font-size: 7px; color: #333; margin-top: 3px; line-height: 1.2; white-space: pre-line; width: 100%; }
+.entry-line { display: block; margin-top: 0px; line-height: 1.15; }
 .entry-name { font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 7.5px; }
 .entry-time { display: block; font-size: 6.5px; color: #555; }
 .more-label { font-size: 6.5px; color: #555; margin-top: 1px; }
