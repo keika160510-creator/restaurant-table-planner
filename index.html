@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- saved from url=(0059)file:///C:/Users/hamas/Downloads/restaurant_planner_10.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Table Planner</title>
 <style>
 * { box-sizing: border-box; }
@@ -76,10 +76,10 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 .left-col { display: flex; flex-direction: column; gap: 4px; }
 
 /* Middle col: table9 | wall | table10 side by side */
-.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 195px; }
+.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 222px; }
 
 /* Right: 2×2 grid for 11A/B, 12A/B */
-.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 165px; }
+.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 189px; }
 
 /* Base table card */
 .table {
@@ -89,14 +89,15 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
   user-select: none; text-align: center;
   padding: 3px 2px 2px; overflow: hidden;
 }
-.table-sm  { width: 112px; height: 56px; }
-.table-9   { width: 108px; height: 86px; }
-.table-10  { width: 108px; height: 86px; }
-.table-r   { width: 90px;  height: 70px; }
+.table-sm  { width: 112px; height: 64px; }
+.table-9   { width: 108px; height: 96px; }
+.table-10  { width: 108px; height: 96px; }
+.table-r   { width: 90px;  height: 78px; }
 
 .free        { background: #f7f7f7; border-color: #aaa; }
 .used        { background: #ffd6d6; border-color: #e88; }
 .future-res  { background: #e8f0ff; border-color: #99b; }
+.waiting-res { background: #fffbe6; border-color: #d4a; }
 .suggested   { background: #d6ffe2; border-color: #6c6; }
 .next-up     { background: #dbeafe; border-color: #88c; }
 
@@ -142,28 +143,28 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
   white-space: nowrap;
   width: 100%;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.2;
 }
 .entry-time {
   display: block;
-  font-size: 6.5px;
-  color: #555;
+  font-size: 8px;
+  color: #444;
   text-align: center;
   line-height: 1.2;
   white-space: nowrap;
 }
-.more-label { font-size: 6px; color: #888; text-align: center; }
+.more-label { font-size: 7px; color: #888; text-align: center; }
 
 /* 使用中エントリは文字を濃く */
-.entry-block.active .entry-name { font-size: 8.5px; }
-.entry-block.active .entry-time { color: #333; }
+.entry-block.active .entry-name { font-size: 10.5px; }
+.entry-block.active .entry-time { color: #222; }
 
 /* Larger text for table 9 & 10 */
 .table-9  .table-name, .table-10 .table-name { font-size: 15px; }
 .table-9  .capacity,   .table-10 .capacity   { font-size: 9px; }
-.table-9  .entry-name, .table-10 .entry-name { font-size: 9.5px; }
-.table-9  .entry-time, .table-10 .entry-time { font-size: 7.5px; }
+.table-9  .entry-name, .table-10 .entry-name { font-size: 11px; }
+.table-9  .entry-time, .table-10 .entry-time { font-size: 9px; }
 
 .wall {
   width: 18px; height: 52px; border-radius: 5px; border: 2px solid #444;
@@ -174,9 +175,30 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 .dot.free        { background: #f7f7f7; }
 .dot.used        { background: #ffd6d6; }
 .dot.future-res  { background: #e8f0ff; }
+.dot.waiting-res { background: #fffbe6; }
 .dot.suggested   { background: #d6ffe2; }
 .dot.next-up     { background: #dbeafe; }
 input#guestName { border: 1.5px solid #2563eb55; }
+
+/* 編集モーダル */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.45); z-index:1000;
+  align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:white; border-radius:12px;
+  padding:18px 20px; min-width:280px; max-width:360px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25);
+}
+.modal-box h3 { margin:0 0 12px; font-size:14px; }
+.modal-row { margin:6px 0; font-size:12px; }
+.modal-row label { display:inline-block; width:80px; }
+.modal-btns { display:flex; gap:8px; margin-top:14px; justify-content:flex-end; }
+.modal-btns button { padding:5px 14px; font-size:12px; cursor:pointer; border-radius:6px; border:1px solid #ccc; }
+.modal-btns .btn-save { background:#2563eb; color:white; border-color:#2563eb; }
+.modal-btns .btn-save:hover { background:#1d4ed8; }
 </style>
 </head>
 <body>
@@ -186,7 +208,7 @@ const LANG = {
   en: {
     title:"Restaurant Table Planner", langBtn:"日本語",
     clockHint:"← Reference clock for time calculations",
-    bizHours:"Business hours: 11:30–14:30 / 16:30–21:15 (5-min slots)",
+    bizHours:"Business hours: 11:30–14:10 / 16:30–21:15 (5-min slots)",
     minus30:"-30 min", minus5:"-5 min", plus5:"+5 min", plus30:"+30 min", reset:"Reset to real time",
     formTitle:"New Reservation / Walk-in",
     labelName:"Name", namePh:"Guest name",
@@ -203,8 +225,8 @@ const LANG = {
     requestedAt:"Requested at:", estSeat:"Est. seat time:", estTables:"Est. tables:",
     estWaitReached:"Est. time reached or passed", estWaitLeft:"Est. wait left:",
     reservedTime:"Reserved time:",
-    btnSeatNow:"Seat Now", btnSeatEarly:"Seat Early", btnDelete:"Delete",
-    legendFree:"Free", legendUsed:"Now in use", legendFuture:"Upcoming reservation", legendAvail:"Available now", legendNext:"Selected wait",
+    btnSeatNow:"Seat Now", btnSeatEarly:"Seat Early", btnDelete:"Delete", btnEdit:"Edit",
+    legendFree:"Free", legendUsed:"Now in use", legendFuture:"Upcoming reservation", legendWaiting:"Waiting (unconfirmed)", legendAvail:"Available now", legendNext:"Selected wait",
     opt:"Option", optRes:"Reservation", optNow:"Seat now", optWait:"Wait",
     okRes:"🟢 Reservation can be booked", okWalk:"🟢 Walk-in can be seated now",
     waitSel:"⏳ Waiting option selected\nEst. seat time:", waitAnd:"tables:", waitTime:"\nEst. wait:", mins:"mins",
@@ -223,7 +245,7 @@ const LANG = {
   ja: {
     title:"レストラン席管理", langBtn:"English",
     clockHint:"← この時計を基準に残り時間や開始時刻を計算",
-    bizHours:"営業時間: 11:30〜14:30 / 16:30〜21:15（5分刻み）",
+    bizHours:"営業時間: 11:30〜14:10 / 16:30〜21:15（5分刻み）",
     minus30:"-30分", minus5:"-5分", plus5:"+5分", plus30:"+30分", reset:"現在時刻に戻す",
     formTitle:"新規予約 / ウォークイン",
     labelName:"お名前", namePh:"お客様名",
@@ -240,8 +262,8 @@ const LANG = {
     requestedAt:"受付時刻:", estSeat:"着席予定:", estTables:"予定テーブル:",
     estWaitReached:"予定時刻に達しました", estWaitLeft:"推定残り待ち時間:",
     reservedTime:"予約時間:",
-    btnSeatNow:"今すぐ着席", btnSeatEarly:"早期着席", btnDelete:"削除",
-    legendFree:"空き", legendUsed:"使用中", legendFuture:"予約あり（未開始）", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
+    btnSeatNow:"今すぐ着席", btnSeatEarly:"早期着席", btnDelete:"削除", btnEdit:"編集",
+    legendFree:"空き", legendUsed:"使用中", legendFuture:"予約あり（未開始）", legendWaiting:"ウェイティング", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
     opt:"選択肢", optRes:"予約", optNow:"今すぐ着席", optWait:"待機",
     okRes:"🟢 予約可能です", okWalk:"🟢 今すぐ着席できます",
     waitSel:"⏳ 待機案を選択中\n着席予定:", waitAnd:"テーブル:", waitTime:"\n推定待ち時間:", mins:"分",
@@ -263,81 +285,96 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
 </script>
 
 <div class="title-row">
-  <h1 id="appTitle"></h1>
-  <button class="lang-btn" id="langToggle" onclick="toggleLang()"></button>
+  <h1 id="appTitle">レストラン席管理</h1>
+  <button class="lang-btn" id="langToggle" onclick="toggleLang()">English</button>
 </div>
 
 
 <div class="row">
   <div class="panel">
-    <h2 id="formTitle"></h2>
-    <div><label id="labelName"></label><input id="guestName" type="text" style="width:165px;"></div>
-    <div><label id="labelStart"></label><select id="start"></select></div>
-    <div><label id="labelPeople"></label><input id="people" type="number" min="1" max="20" value="4" style="width:55px;"></div>
-    <div><label id="labelType"></label>
-      <select id="type"><option value="reservation" id="optRes"></option><option value="walkin" id="optWalk"></option></select>
+    <h2 id="formTitle">新規予約 / ウォークイン</h2>
+    <div><label id="labelName">お名前</label><input id="guestName" type="text" style="width:165px;" placeholder="お客様名"></div>
+    <div><label id="labelStart">開始</label><select id="start"><option value="690">11:30</option><option value="695">11:35</option><option value="700">11:40</option><option value="705">11:45</option><option value="710">11:50</option><option value="715">11:55</option><option value="720">12:00</option><option value="725">12:05</option><option value="730">12:10</option><option value="735">12:15</option><option value="740">12:20</option><option value="745">12:25</option><option value="750">12:30</option><option value="755">12:35</option><option value="760">12:40</option><option value="765">12:45</option><option value="770">12:50</option><option value="775">12:55</option><option value="780">13:00</option><option value="785">13:05</option><option value="790">13:10</option><option value="795">13:15</option><option value="800">13:20</option><option value="805">13:25</option><option value="810">13:30</option><option value="815">13:35</option><option value="820">13:40</option><option value="825">13:45</option><option value="830">13:50</option><option value="835">13:55</option><option value="840">14:00</option><option value="845">14:05</option><option value="850">14:10</option><option value="990">16:30</option><option value="995">16:35</option><option value="1000">16:40</option><option value="1005">16:45</option><option value="1010">16:50</option><option value="1015">16:55</option><option value="1020">17:00</option><option value="1025">17:05</option><option value="1030">17:10</option><option value="1035">17:15</option><option value="1040">17:20</option><option value="1045">17:25</option><option value="1050">17:30</option><option value="1055">17:35</option><option value="1060">17:40</option><option value="1065">17:45</option><option value="1070">17:50</option><option value="1075">17:55</option><option value="1080">18:00</option><option value="1085">18:05</option><option value="1090">18:10</option><option value="1095">18:15</option><option value="1100">18:20</option><option value="1105">18:25</option><option value="1110">18:30</option><option value="1115">18:35</option><option value="1120">18:40</option><option value="1125">18:45</option><option value="1130">18:50</option><option value="1135">18:55</option><option value="1140">19:00</option><option value="1145">19:05</option><option value="1150">19:10</option><option value="1155">19:15</option><option value="1160">19:20</option><option value="1165">19:25</option><option value="1170">19:30</option><option value="1175">19:35</option><option value="1180">19:40</option><option value="1185">19:45</option><option value="1190">19:50</option><option value="1195">19:55</option><option value="1200">20:00</option><option value="1205">20:05</option><option value="1210">20:10</option><option value="1215">20:15</option><option value="1220">20:20</option><option value="1225">20:25</option><option value="1230">20:30</option><option value="1235">20:35</option><option value="1240">20:40</option><option value="1245">20:45</option><option value="1250">20:50</option><option value="1255">20:55</option><option value="1260">21:00</option><option value="1265">21:05</option><option value="1270">21:10</option><option value="1275">21:15</option></select></div>
+    <div><label id="labelPeople">人数</label><input id="people" type="number" min="1" max="20" value="4" style="width:55px;"></div>
+    <div><label id="labelType">種別</label>
+      <select id="type"><option value="reservation" id="optRes">予約</option><option value="walkin" id="optWalk">ウォークイン</option></select>
     </div>
-    <div id="walkinBlock" style="display:none;">
-      <label id="labelMaxMins"></label>
+    <div id="walkinBlock" style="display: none;">
+      <label id="labelMaxMins">最大時間</label>
       <input id="maxMins" type="number" min="60" max="120" step="5" value="60" style="width:55px;">
-      <span class="small" id="maxMinsHint"></span>
+      <span class="small" id="maxMinsHint">最低60分</span>
     </div>
     <div style="margin-top:5px;">
-      <button id="btnSuggest"></button><button id="btnAdd"></button><button id="btnClearSuggest"></button>
+      <button id="btnSuggest">提案</button><button id="btnAdd">登録</button><button id="btnClearSuggest">クリア</button>
     </div>
     <div class="result" id="result"></div>
     <div id="optionList" class="option-list"></div>
-    <div class="section"><h3 id="seatedTitle"></h3><div class="small" id="seatedHint"></div><div id="seatedList" class="list"></div></div>
-    <div class="section"><h3 id="waitTitle"></h3><div class="small" id="waitHint"></div><div id="waitingList" class="list"></div></div>
-    <div class="section"><h3 id="futureTitle"></h3><div class="small" id="futureHint"></div><div id="futureList" class="list"></div></div>
+    <div class="section"><h3 id="seatedTitle">着席中</h3><div class="small" id="seatedHint">現在テーブルを使用中</div><div id="seatedList" class="list"><div class="empty">着席中のグループはありません。</div></div></div>
+    <div class="section"><h3 id="waitTitle">ウェイティング</h3><div class="small" id="waitHint">未着席 / テーブルはブロックしない</div><div id="waitingList" class="list"><div class="empty">待機中のグループはありません。</div></div></div>
+    <div class="section"><h3 id="futureTitle">予約一覧</h3><div class="small" id="futureHint">事前予約 / 手動で早期着席可能</div><div id="futureList" class="list"><div class="empty">予約はありません。</div></div></div>
   </div>
 
   <div class="map">
-    <h2 id="mapTitle"></h2>
+    <h2 id="mapTitle">席マップ</h2>
     <div class="seat-layout">
       <!-- Tables 1-8: single column -->
-      <div class="left-col" id="leftCol"></div>
+      <div class="left-col" id="leftCol"><div class="table table-sm free" id="t1"><div class="table-name">1</div><div class="capacity" id="cap1">2 席</div><div class="time-label" id="time-1"></div><div class="more-label" id="more-1"></div></div><div class="table table-sm free" id="t2"><div class="table-name">2</div><div class="capacity" id="cap2">2 席</div><div class="time-label" id="time-2"></div><div class="more-label" id="more-2"></div></div><div class="table table-sm free" id="t3"><div class="table-name">3</div><div class="capacity" id="cap3">2 席</div><div class="time-label" id="time-3"></div><div class="more-label" id="more-3"></div></div><div class="table table-sm free" id="t4"><div class="table-name">4</div><div class="capacity" id="cap4">2 席</div><div class="time-label" id="time-4"></div><div class="more-label" id="more-4"></div></div><div class="table table-sm free" id="t5"><div class="table-name">5</div><div class="capacity" id="cap5">2 席</div><div class="time-label" id="time-5"></div><div class="more-label" id="more-5"></div></div><div class="table table-sm free" id="t6"><div class="table-name">6</div><div class="capacity" id="cap6">2 席</div><div class="time-label" id="time-6"></div><div class="more-label" id="more-6"></div></div><div class="table table-sm free" id="t7"><div class="table-name">7</div><div class="capacity" id="cap7">2 席</div><div class="time-label" id="time-7"></div><div class="more-label" id="more-7"></div></div><div class="table table-sm free" id="t8"><div class="table-name">8</div><div class="capacity" id="cap8">2 席</div><div class="time-label" id="time-8"></div><div class="more-label" id="more-8"></div></div></div>
 
       <!-- Table 9 | wall | Table 10 -->
       <div class="middle-col">
         <div class="table table-9 free" id="t9">
-          <div class="table-name">9</div><div class="capacity" id="cap9"></div>
+          <div class="table-name">9</div><div class="capacity" id="cap9">4 席</div>
           <div class="time-label" id="time-9"></div><div class="more-label" id="more-9"></div>
         </div>
         <div class="wall"></div>
         <div class="table table-10 free" id="t10">
-          <div class="table-name">10</div><div class="capacity" id="cap10"></div>
+          <div class="table-name">10</div><div class="capacity" id="cap10">4 席</div>
           <div class="time-label" id="time-10"></div><div class="more-label" id="more-10"></div>
         </div>
       </div>
 
       <!-- 11A 11B / 12A 12B -->
       <div class="right-grid">
-        <div class="table table-r free" id="t11A"><div class="table-name">11A</div><div class="capacity" id="cap11A"></div><div class="time-label" id="time-11A"></div><div class="more-label" id="more-11A"></div></div>
-        <div class="table table-r free" id="t11B"><div class="table-name">11B</div><div class="capacity" id="cap11B"></div><div class="time-label" id="time-11B"></div><div class="more-label" id="more-11B"></div></div>
-        <div class="table table-r free" id="t12A"><div class="table-name">12A</div><div class="capacity" id="cap12A"></div><div class="time-label" id="time-12A"></div><div class="more-label" id="more-12A"></div></div>
-        <div class="table table-r free" id="t12B"><div class="table-name">12B</div><div class="capacity" id="cap12B"></div><div class="time-label" id="time-12B"></div><div class="more-label" id="more-12B"></div></div>
+        <div class="table table-r free" id="t11A"><div class="table-name">11A</div><div class="capacity" id="cap11A">2 席</div><div class="time-label" id="time-11A"></div><div class="more-label" id="more-11A"></div></div>
+        <div class="table table-r free" id="t11B"><div class="table-name">11B</div><div class="capacity" id="cap11B">2 席</div><div class="time-label" id="time-11B"></div><div class="more-label" id="more-11B"></div></div>
+        <div class="table table-r free" id="t12A"><div class="table-name">12A</div><div class="capacity" id="cap12A">2 席</div><div class="time-label" id="time-12A"></div><div class="more-label" id="more-12A"></div></div>
+        <div class="table table-r free" id="t12B"><div class="table-name">12B</div><div class="capacity" id="cap12B">2 席</div><div class="time-label" id="time-12B"></div><div class="more-label" id="more-12B"></div></div>
       </div>
     </div>
     <div class="legend">
-      <span><span class="dot free"></span> <span id="lgFree"></span></span>
-      <span><span class="dot used"></span> <span id="lgUsed"></span></span>
-      <span><span class="dot future-res"></span> <span id="lgFuture"></span></span>
-      <span><span class="dot suggested"></span> <span id="lgAvail"></span></span>
-      <span><span class="dot next-up"></span> <span id="lgNext"></span></span>
+      <span><span class="dot free"></span> <span id="lgFree">空き</span></span>
+      <span><span class="dot used"></span> <span id="lgUsed">使用中</span></span>
+      <span><span class="dot future-res"></span> <span id="lgFuture">予約あり（未開始）</span></span>
+      <span><span class="dot waiting-res"></span> <span id="lgWaiting">ウェイティング</span></span>
+      <span><span class="dot suggested"></span> <span id="lgAvail">今すぐ可能</span></span>
+      <span><span class="dot next-up"></span> <span id="lgNext">待機選択肢</span></span>
     </div>
   </div>
 
   <!-- Clock box: rightmost column -->
   <div class="clock-box">
-    <span class="clock-main" id="virtualClock"></span>
-    <span class="small" id="clockHint"></span>
+    <span class="clock-main" id="virtualClock">仮想時刻: 17:16</span>
+    <span class="small" id="clockHint">← この時計を基準に残り時間や開始時刻を計算</span>
     <div class="clock-btns">
-      <button id="minus30"></button><button id="minus5"></button>
-      <button id="plus5"></button><button id="plus30"></button>
-      <button id="resetClock"></button>
+      <button id="minus30">-30分</button><button id="minus5">-5分</button>
+      <button id="plus5">+5分</button><button id="plus30">+30分</button>
+      <button id="resetClock">現在時刻に戻す</button>
     </div>
-    <span class="small" id="bizHours"></span>
+    <span class="small" id="bizHours">営業時間: 11:30〜14:10 / 16:30〜21:15（5分刻み）</span>
+  </div>
+</div>
+
+<!-- 編集モーダル -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3 id="editModalTitle">編集</h3>
+    <div class="modal-row"><label id="editLabelName">お名前</label><input id="editName" type="text" style="width:160px;"></div>
+    <div class="modal-row"><label id="editLabelStart">開始</label><select id="editStart"><option value="690">11:30</option><option value="695">11:35</option><option value="700">11:40</option><option value="705">11:45</option><option value="710">11:50</option><option value="715">11:55</option><option value="720">12:00</option><option value="725">12:05</option><option value="730">12:10</option><option value="735">12:15</option><option value="740">12:20</option><option value="745">12:25</option><option value="750">12:30</option><option value="755">12:35</option><option value="760">12:40</option><option value="765">12:45</option><option value="770">12:50</option><option value="775">12:55</option><option value="780">13:00</option><option value="785">13:05</option><option value="790">13:10</option><option value="795">13:15</option><option value="800">13:20</option><option value="805">13:25</option><option value="810">13:30</option><option value="815">13:35</option><option value="820">13:40</option><option value="825">13:45</option><option value="830">13:50</option><option value="835">13:55</option><option value="840">14:00</option><option value="845">14:05</option><option value="850">14:10</option><option value="990">16:30</option><option value="995">16:35</option><option value="1000">16:40</option><option value="1005">16:45</option><option value="1010">16:50</option><option value="1015">16:55</option><option value="1020">17:00</option><option value="1025">17:05</option><option value="1030">17:10</option><option value="1035">17:15</option><option value="1040">17:20</option><option value="1045">17:25</option><option value="1050">17:30</option><option value="1055">17:35</option><option value="1060">17:40</option><option value="1065">17:45</option><option value="1070">17:50</option><option value="1075">17:55</option><option value="1080">18:00</option><option value="1085">18:05</option><option value="1090">18:10</option><option value="1095">18:15</option><option value="1100">18:20</option><option value="1105">18:25</option><option value="1110">18:30</option><option value="1115">18:35</option><option value="1120">18:40</option><option value="1125">18:45</option><option value="1130">18:50</option><option value="1135">18:55</option><option value="1140">19:00</option><option value="1145">19:05</option><option value="1150">19:10</option><option value="1155">19:15</option><option value="1160">19:20</option><option value="1165">19:25</option><option value="1170">19:30</option><option value="1175">19:35</option><option value="1180">19:40</option><option value="1185">19:45</option><option value="1190">19:50</option><option value="1195">19:55</option><option value="1200">20:00</option><option value="1205">20:05</option><option value="1210">20:10</option><option value="1215">20:15</option><option value="1220">20:20</option><option value="1225">20:25</option><option value="1230">20:30</option><option value="1235">20:35</option><option value="1240">20:40</option><option value="1245">20:45</option><option value="1250">20:50</option><option value="1255">20:55</option><option value="1260">21:00</option><option value="1265">21:05</option><option value="1270">21:10</option><option value="1275">21:15</option></select></div>
+    <div class="modal-row"><label id="editLabelPeople">人数</label><input id="editPeople" type="number" min="1" max="20" style="width:55px;"></div>
+    <div class="modal-btns">
+      <button id="editCancel">キャンセル</button>
+      <button class="btn-save" id="editSave">保存</button>
+    </div>
   </div>
 </div>
 
@@ -370,7 +407,7 @@ function applyLang(){
     maxMinsHint:"maxMinsHint",btnSuggest:"btnSuggest",btnAdd:"btnAdd",btnClearSuggest:"btnClear",
     seatedTitle:"seatedTitle",seatedHint:"seatedHint",waitTitle:"waitTitle",waitHint:"waitHint",
     futureTitle:"futureTitle",futureHint:"futureHint",mapTitle:"mapTitle",
-    lgFree:"legendFree",lgUsed:"legendUsed",lgFuture:"legendFuture",lgAvail:"legendAvail",lgNext:"legendNext"};
+    lgFree:"legendFree",lgUsed:"legendUsed",lgFuture:"legendFuture",lgWaiting:"legendWaiting",lgAvail:"legendAvail",lgNext:"legendNext"};
   for(const[id,key]of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=t(key);}
   document.getElementById("guestName").placeholder=t("namePh");
   const caps={1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:4,10:4,"11A":2,"11B":2,"12A":2,"12B":2};
@@ -384,7 +421,7 @@ function updateVirtualClockText(){document.getElementById("virtualClock").textCo
 function adjustClock(d){virtualNowMin=clampToDay(virtualNowMin+d);updateVirtualClockText();renderAllLists();refreshMap();if(pendingSuggestion)selectOption(selectedOptionIndex);}
 function resetClockToReal(){virtualNowMin=getRealNowMinutes();updateVirtualClockText();renderAllLists();refreshMap();if(pendingSuggestion)selectOption(selectedOptionIndex);}
 
-function getAllBusinessTimes(){const ts=[];function r(sh,sm,eh,em){let t=sh*60+sm,e=eh*60+em;while(t<=e){ts.push(t);t+=5;}}r(11,30,14,30);r(16,30,21,15);return ts;}
+function getAllBusinessTimes(){const ts=[];function r(sh,sm,eh,em){let t=sh*60+sm,e=eh*60+em;while(t<=e){ts.push(t);t+=5;}}r(11,30,14,10);r(16,30,21,15);return ts;}
 function generateTimes(){const sel=document.getElementById("start");sel.innerHTML="";const ts=getAllBusinessTimes();for(const m of ts){const o=document.createElement("option");o.value=m;o.textContent=minutesToLabel(m);sel.appendChild(o);}const near=ts.reduce((b,x)=>Math.abs(x-virtualNowMin)<Math.abs(b-virtualNowMin)?x:b,ts[0]);sel.value=String(near);}
 function minutesToLabel(m){const h=Math.floor(m/60),mn=m%60;return`${String(h).padStart(2,"0")}:${String(mn).padStart(2,"0")}`;}
 function getColorForGroup(g){const n=Number(String(g).replace(/\D/g,""))||1;return GROUP_COLORS[(n-1)%GROUP_COLORS.length];}
@@ -392,7 +429,7 @@ function displayLabel(r){return r.guestName&&r.guestName.trim()?r.guestName.trim
 
 function overlap(as,ae,bs,be){return!(ae<=bs||be<=as);}
 function capacityOf(ids){return ids.reduce((s,id)=>s+(CAP[id]||0),0);}
-function getAllBlockingEntries(){return[...seatedEntries,...futureReservations];}
+function getAllBlockingEntries(){return[...seatedEntries,...futureReservations,...waitingEntries];}
 function tablesUsedInWindow(s,e,ig=null){const u=new Set();for(const r of getAllBlockingEntries()){if(ig&&r.id===ig)continue;if(overlap(s,e,r.startMin,r.endMin))r.tables.forEach(x=>u.add(x));}return u;}
 function freeTablesInWindow(s,e,ig=null){const u=tablesUsedInWindow(s,e,ig);return TABLES.map(x=>x.id).filter(id=>!u.has(id));}
 function getOverlappingEntries(s,e,ig=null){return getAllBlockingEntries().filter(r=>{if(ig&&r.id===ig)return false;return overlap(s,e,r.startMin,r.endMin);});}
@@ -455,7 +492,7 @@ function findFuture(startMin,people,type,maxMins,limit=3,ig=null){
 function setTableClass(id,cls){
   const el=document.getElementById("t"+id);
   if(!el)return;
-  el.classList.remove("free","used","future-res","suggested","next-up");
+  el.classList.remove("free","used","future-res","waiting-res","suggested","next-up");
   el.classList.add(cls);
 }
 
@@ -465,39 +502,34 @@ function updateTableTimeLabels(){
     const tl=document.getElementById(`time-${tb.id}`),ml=document.getElementById(`more-${tb.id}`);
     if(!tl||!ml)continue;
 
-    // 現在時刻に関係ある予約のみ（過去に終わったものは除外）
     let entries=blocking
       .filter(r=>r.tables.includes(tb.id) && r.endMin > virtualNowMin)
-      .map(r=>({
-        groupId:r.groupId, guestName:r.guestName,
-        startMin:r.startMin, endMin:r.endMin,
-        active: virtualNowMin >= r.startMin && virtualNowMin < r.endMin
-      }));
+      .map(r=>({groupId:r.groupId,guestName:r.guestName,startMin:r.startMin,endMin:r.endMin,
+        active: virtualNowMin>=r.startMin && virtualNowMin<r.endMin, isWaiting:false}));
 
-    // pendingSuggestion プレビュー
+    // ウェイティングも表示（斜体・薄め）
+    waitingEntries
+      .filter(r=>r.tables.includes(tb.id) && r.endMin > virtualNowMin)
+      .forEach(r=>entries.push({groupId:r.groupId,guestName:r.guestName,startMin:r.startMin,endMin:r.endMin,
+        active:false, isWaiting:true}));
+
     if(pendingSuggestion&&pendingSuggestion.previewBlocksTables&&pendingSuggestion.tables.includes(tb.id)){
-      entries.push({
-        groupId:pendingSuggestion.groupId, guestName:pendingSuggestion.guestName,
-        startMin:pendingSuggestion.startMin, endMin:pendingSuggestion.endMin,
-        active: virtualNowMin >= pendingSuggestion.startMin && virtualNowMin < pendingSuggestion.endMin
-      });
+      entries.push({groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,
+        startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin,
+        active:virtualNowMin>=pendingSuggestion.startMin&&virtualNowMin<pendingSuggestion.endMin,isWaiting:false});
     }
 
     entries.sort((a,b)=>a.startMin-b.startMin);
+    if(!entries.length){tl.className="time-label";tl.innerHTML="";ml.textContent="";continue;}
 
-    if(!entries.length){
-      tl.className="time-label";
-      tl.innerHTML=""; ml.textContent=""; continue;
-    }
-
-    const vis=entries.slice(0,2), hid=entries.length-vis.length;
-
-    tl.className="time-label" + (vis.length===2?" two-entries":"");
+    const vis=entries.slice(0,2),hid=entries.length-vis.length;
+    tl.className="time-label"+(vis.length===2?" two-entries":"");
     tl.innerHTML=vis.map(e=>{
       const c=getColorForGroup(e.groupId);
       const nm=e.guestName&&e.guestName.trim()?e.guestName.trim():e.groupId;
       const activeCls=e.active?" active":"";
-      return `<div class="entry-block${activeCls}">
+      const waitStyle=e.isWaiting?"opacity:0.65;font-style:italic;":"";
+      return `<div class="entry-block${activeCls}" style="${waitStyle}">
         <span class="entry-name" style="color:${c};">${nm}</span>
         <span class="entry-time">${minutesToLabel(e.startMin)}–${minutesToLabel(e.endMin)}</span>
       </div>`;
@@ -507,38 +539,18 @@ function updateTableTimeLabels(){
 }
 
 function refreshMap(){
-  // まずすべてリセット
   TABLES.forEach(tb=>setTableClass(tb.id,"free"));
-
-  // 仮想時刻基準で色分け
   const blocking=getAllBlockingEntries();
   for(const tb of TABLES){
-    // 現在使用中
-    const isActive=blocking.some(r=>
-      r.tables.includes(tb.id) &&
-      virtualNowMin >= r.startMin &&
-      virtualNowMin < r.endMin
-    );
-    // 未来の予約あり（まだ始まっていない）
-    const hasFuture=blocking.some(r=>
-      r.tables.includes(tb.id) &&
-      r.startMin > virtualNowMin
-    );
-
+    const isActive=blocking.some(r=>r.tables.includes(tb.id)&&virtualNowMin>=r.startMin&&virtualNowMin<r.endMin);
+    const hasFuture=blocking.some(r=>r.tables.includes(tb.id)&&r.startMin>virtualNowMin);
+    const hasWaiting=waitingEntries.some(r=>r.tables.includes(tb.id)&&r.endMin>virtualNowMin);
     if(isActive) setTableClass(tb.id,"used");
     else if(hasFuture) setTableClass(tb.id,"future-res");
+    else if(hasWaiting) setTableClass(tb.id,"waiting-res");
   }
-
-  // 提案・選択中のオーバーレイ
-  suggestedTables.forEach(x=>{
-    const el=document.getElementById("t"+x);
-    if(el&&!el.classList.contains("used")) setTableClass(x,"suggested");
-  });
-  nextAvailableTables.forEach(x=>{
-    const el=document.getElementById("t"+x);
-    if(el&&!el.classList.contains("used")) setTableClass(x,"next-up");
-  });
-
+  suggestedTables.forEach(x=>{const el=document.getElementById("t"+x);if(el&&!el.classList.contains("used"))setTableClass(x,"suggested");});
+  nextAvailableTables.forEach(x=>{const el=document.getElementById("t"+x);if(el&&!el.classList.contains("used"))setTableClass(x,"next-up");});
   updateTableTimeLabels();
 }
 function clearSug(){suggestedTables=[];nextAvailableTables=[];pendingSuggestion=null;suggestionOptions=[];selectedOptionIndex=-1;}
@@ -573,7 +585,11 @@ function renderWaitingList(){
     const item=mkListItem(r,"waiting",{
       title:`<b>${t("typeWaiting")}</b> — ${r.people} ${t("people")}`,
       rows:[`${t("requestedAt")} ${minutesToLabel(r.originalRequestedStart)}`,`${t("estSeat")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("estTables")} ${r.tables.join(", ")}`,estLeft===0?t("estWaitReached"):`${t("estWaitLeft")} ${estLeft} ${t("minsUnit")}`]
-    },[{action:"seat",label:t("btnSeatNow"),fn:()=>confirmSeatWaiting(r.id)},{action:"delete",label:t("btnDelete"),fn:()=>{waitingEntries=waitingEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    },[
+      {action:"edit",  label:t("btnEdit"),  fn:()=>openEditModal(r.id,"waiting")},
+      {action:"seat",  label:t("btnSeatNow"),fn:()=>confirmSeatWaiting(r.id)},
+      {action:"delete",label:t("btnDelete"), fn:()=>{waitingEntries=waitingEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}
+    ]);
     c.appendChild(item);
   }
 }
@@ -585,7 +601,11 @@ function renderFutureList(){
     const item=mkListItem(r,"future",{
       title:`<b>${t("typeReservation")}</b> — ${r.people} ${t("people")}`,
       rows:[`${t("reservedTime")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("tablesLabel")} ${r.tables.join(", ")}`,futureStatus(r)]
-    },[{action:"seat",label:seatLbl,fn:()=>seatFutureNow(r.id)},{action:"delete",label:t("btnDelete"),fn:()=>{futureReservations=futureReservations.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    },[
+      {action:"edit",  label:t("btnEdit"),  fn:()=>openEditModal(r.id,"future")},
+      {action:"seat",  label:seatLbl,       fn:()=>seatFutureNow(r.id)},
+      {action:"delete",label:t("btnDelete"),fn:()=>{futureReservations=futureReservations.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}
+    ]);
     c.appendChild(item);
   }
 }
@@ -612,6 +632,68 @@ function renderOptionList(){
 }
 
 function tablesAreFree(entry,ig=null){for(const ex of getAllBlockingEntries()){if(ig&&ex.id===ig)continue;if(!overlap(entry.startMin,entry.endMin,ex.startMin,ex.endMin))continue;if(entry.tables.some(x=>ex.tables.includes(x)))return false;}return true;}
+
+/* ===== 編集モーダル ===== */
+let editTargetId=null, editTargetType=null;
+
+function openEditModal(id, type){
+  const arr=type==="future"?futureReservations:waitingEntries;
+  const r=arr.find(x=>x.id===id); if(!r)return;
+  editTargetId=id; editTargetType=type;
+
+  // モーダルのラベルを現在言語に合わせる
+  document.getElementById("editModalTitle").textContent=t("btnEdit");
+  document.getElementById("editLabelName").textContent=t("labelName");
+  document.getElementById("editLabelStart").textContent=t("labelStart");
+  document.getElementById("editLabelPeople").textContent=t("labelPeople");
+  document.getElementById("editSave").textContent=currentLang==="ja"?"保存":"Save";
+  document.getElementById("editCancel").textContent=currentLang==="ja"?"キャンセル":"Cancel";
+
+  // 現在の値をセット
+  document.getElementById("editName").value=r.guestName||"";
+  document.getElementById("editPeople").value=r.people;
+
+  // 時刻セレクトを生成
+  const sel=document.getElementById("editStart"); sel.innerHTML="";
+  for(const m of getAllBusinessTimes()){
+    const o=document.createElement("option");
+    o.value=m; o.textContent=minutesToLabel(m);
+    sel.appendChild(o);
+  }
+  sel.value=String(r.startMin);
+
+  document.getElementById("editModal").classList.add("open");
+}
+
+function closeEditModal(){
+  document.getElementById("editModal").classList.remove("open");
+  editTargetId=null; editTargetType=null;
+}
+
+document.getElementById("editCancel").addEventListener("click",closeEditModal);
+document.getElementById("editModal").addEventListener("click",(e)=>{
+  if(e.target===document.getElementById("editModal"))closeEditModal();
+});
+
+document.getElementById("editSave").addEventListener("click",()=>{
+  if(!editTargetId)return;
+  const arr=editTargetType==="future"?futureReservations:waitingEntries;
+  const r=arr.find(x=>x.id===editTargetId); if(!r)return;
+
+  const newName=document.getElementById("editName").value.trim();
+  const newStart=Number(document.getElementById("editStart").value);
+  const newPeople=Number(document.getElementById("editPeople").value);
+  const duration=r.endMin-r.startMin;
+
+  r.guestName=newName;
+  r.people=newPeople;
+  r.startMin=newStart;
+  r.endMin=newStart+duration;
+
+  closeEditModal();
+  renderAllLists(); refreshMap();
+  document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${currentLang==="ja"?"を更新しました":"updated."}`;
+});
 function confirmSeatWaiting(wid){
   const r=waitingEntries.find(x=>x.id===wid);if(!r)return;
   const sg=suggestWalkIn(virtualNowMin,r.people,r.maxMins,null);
@@ -667,5 +749,6 @@ document.getElementById("resetClock").addEventListener("click",resetClockToReal)
 
 applyLang();generateTimes();renderAllLists();renderOptionList();refreshMap();
 </script>
-</body>
-</html>
+
+
+</body></html>
