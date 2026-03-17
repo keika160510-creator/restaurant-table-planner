@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Restaurant Table Planner</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  padding: 6px 10px;
+  margin: 0;
+  background: #fafafa;
+  overflow: hidden;
+}
+.title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+h1 { margin: 0; font-size: 20px; display: inline; }
+.lang-btn {
+  padding: 3px 11px; font-size: 11px; cursor: pointer;
+  border: 1.5px solid #2563eb; border-radius: 6px;
+  background: white; color: #2563eb; font-weight: 700;
+}
+.lang-btn:hover { background: #dbeafe; }
+.small { color: #666; font-size: 10.5px; }
+
+/* Clock box: now lives in right column, vertical layout */
+.clock-box {
+  border: 1px solid #ddd; border-radius: 8px;
+  background: #fff; padding: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+  width: 190px; flex-shrink: 0;
+}
+.clock-main { font-weight: 700; font-size: 14px; }
+.clock-btns { display: flex; flex-wrap: wrap; gap: 3px; }
+.clock-btns button { padding: 3px 6px; font-size: 11px; cursor: pointer; flex: 1 1 auto; }
+
+.row { display: flex; gap: 8px; align-items: flex-start; }
+.panel {
+  width: 345px; flex-shrink: 0;
+  border: 1px solid #ddd; border-radius: 10px;
+  padding: 8px; background: white;
+  overflow-y: auto; max-height: calc(100vh - 42px);
+}
+.map {
+  flex: 1; border: 1px solid #ddd; border-radius: 10px;
+  padding: 8px; background: white;
+  max-height: calc(100vh - 42px); overflow: hidden;
+}
+.panel h2, .map h2 { margin: 0 0 5px; font-size: 14px; }
+h3 { margin: 7px 0 3px; font-size: 12px; }
+label { display: inline-block; width: 78px; font-size: 12px; }
+input, select { padding: 3px 5px; margin: 2px 0; font-size: 12px; }
+button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; font-size: 11px; }
+.result { margin-top: 5px; font-weight: bold; min-height: 30px; font-size: 11.5px; line-height: 1.4; white-space: pre-line; }
+.option-list { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+.option-card { border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 7px; padding: 5px; cursor: pointer; font-size: 11px; line-height: 1.3; }
+.option-card:hover { background: #eef6ff; }
+.option-card.selected { border: 2px solid #2563eb; background: #dbeafe; }
+.option-title { font-weight: 700; margin-bottom: 1px; }
+.section { margin-top: 7px; }
+.list { margin-top: 3px; }
+.list-item { border: 1px solid #ddd; border-radius: 7px; padding: 5px; margin: 3px 0; display: flex; justify-content: space-between; gap: 5px; background: #fcfcfc; font-size: 10.5px; }
+.list-item.waiting { background: #fffaf0; border-color: #f0c36d; }
+.list-item.seated  { background: #f0fff4; border-color: #8fd3a7; }
+.list-item.future  { background: #f7f7ff; border-color: #b9c3ff; }
+.reservation-id { font-weight: 700; }
+.color-dot-inline { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+.action-buttons { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; min-width: 72px; }
+.action-buttons button { margin: 0; width: 72px; font-size: 10px; padding: 4px 2px; }
+.empty { color: #666; font-size: 11px; padding: 2px 0; }
+
+/* ===== SEAT MAP ===== */
+.seat-layout { display: flex; align-items: flex-start; gap: 14px; margin-top: 4px; }
+
+/* Tables 1-8: single column, 8 rows */
+.left-col { display: flex; flex-direction: column; gap: 4px; }
+
+/* Middle col: table9 | wall | table10 side by side */
+.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 195px; }
+
+/* Right: 2×2 grid for 11A/B, 12A/B */
+.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 165px; }
+
+/* Base table card */
+.table {
+  border: 2px solid #666; border-radius: 8px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  user-select: none; text-align: center;
+  padding: 3px 2px 2px; overflow: hidden;
+}
+.table-sm  { width: 112px; height: 56px; }
+.table-9   { width: 108px; height: 86px; }
+.table-10  { width: 108px; height: 86px; }
+.table-r   { width: 90px;  height: 70px; }
+
+.free     { background: #f7f7f7; }
+.used     { background: #ffd6d6; }
+.suggested{ background: #d6ffe2; }
+.next-up  { background: #dbeafe; }
+
+.table-name { font-size: 13px; font-weight: 700; line-height: 1; margin-top: 1px; }
+.capacity   { font-size: 8px; color: #666; margin-top: 0; line-height: 1; }
+/* 2席テーブルは席数表示なし */
+.table-sm .capacity, .table-r .capacity { display: none; }
+.time-label { font-size: 7px; color: #333; margin-top: 3px; line-height: 1.2; white-space: pre-line; width: 100%; }
+.entry-line { display: block; margin-top: 0px; line-height: 1.15; }
+.entry-name { font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 7.5px; }
+.entry-time { display: block; font-size: 6.5px; color: #555; }
+.more-label { font-size: 6.5px; color: #555; margin-top: 1px; }
+
+/* Larger text for table 9 & 10 */
+.table-9  .table-name, .table-10 .table-name { font-size: 15px; }
+.table-9  .capacity,   .table-10 .capacity   { font-size: 9px; }
+.table-9  .entry-name, .table-10 .entry-name { font-size: 9px; }
+.table-9  .entry-time, .table-10 .entry-time { font-size: 7.5px; }
+
+.wall {
+  width: 18px; height: 52px; border-radius: 5px; border: 2px solid #444;
+  background: repeating-linear-gradient(45deg,#777,#777 5px,#999 5px,#999 10px);
+}
+.legend { display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; font-size: 11px; }
+.dot { width: 11px; height: 11px; border-radius: 3px; border: 1px solid #555; display: inline-block; }
+.dot.free     { background: #f7f7f7; }
+.dot.used     { background: #ffd6d6; }
+.dot.suggested{ background: #d6ffe2; }
+.dot.next-up  { background: #dbeafe; }
+input#guestName { border: 1.5px solid #2563eb55; }
+</style>
+</head>
+<body>
+
+<script>
+const LANG = {
+  en: {
+    title:"Restaurant Table Planner", langBtn:"日本語",
+    clockHint:"← Reference clock for time calculations",
+    bizHours:"Business hours: 11:30–14:30 / 16:30–21:15 (5-min slots)",
+    minus30:"-30 min", minus5:"-5 min", plus5:"+5 min", plus30:"+30 min", reset:"Reset to real time",
+    formTitle:"New Reservation / Walk-in",
+    labelName:"Name", namePh:"Guest name",
+    labelStart:"Start", labelPeople:"People", labelType:"Type",
+    typeRes:"Reservation", typeWalk:"Walk-in",
+    labelMaxMins:"Max mins", maxMinsHint:"minimum 60 mins",
+    btnSuggest:"Suggest", btnAdd:"Add Entry", btnClear:"Clear",
+    seatedTitle:"Seated", seatedHint:"Now occupying tables", noSeated:"No seated groups.",
+    waitTitle:"Waiting List", waitHint:"Not seated yet / does not block tables", noWait:"No waiting groups.",
+    futureTitle:"Future Reservations", futureHint:"Reserved in advance / can be seated early manually", noFuture:"No future reservations.",
+    mapTitle:"Seat Map", seats:"seats",
+    typeLabelRes:"Reservation / Seated", typeLabelWalk:"Walk-in / Seated", typeWaiting:"Waiting", typeReservation:"Reservation",
+    timeLabel:"Time:", tablesLabel:"Tables:",
+    requestedAt:"Requested at:", estSeat:"Est. seat time:", estTables:"Est. tables:",
+    estWaitReached:"Est. time reached or passed", estWaitLeft:"Est. wait left:",
+    reservedTime:"Reserved time:",
+    btnSeatNow:"Seat Now", btnSeatEarly:"Seat Early", btnDelete:"Delete",
+    legendFree:"Free", legendUsed:"Used/blocked", legendAvail:"Available now", legendNext:"Selected wait",
+    opt:"Option", optRes:"Reservation", optNow:"Seat now", optWait:"Wait",
+    okRes:"🟢 Reservation can be booked", okWalk:"🟢 Walk-in can be seated now",
+    waitSel:"⏳ Waiting option selected\nEst. seat time:", waitAnd:"tables:", waitTime:"\nEst. wait:", mins:"mins",
+    addedFuture:"✅ Added to Future Reservations", addedSeated:"✅ Added to Seated", addedWaiting:"✅ Added to Waiting List",
+    movedSeated:"moved from Waiting List to Seated.", movedFutureSeated:"moved from Future Reservations to Seated.",
+    warnSeat:"⚠️ Cannot seat right now.\nNext estimate:", warnWait:"Wait:", warnNoOption:"⚠️ Cannot seat now, no option found today.",
+    warnTablesBusy:"cannot be seated now.\nTables not free at",
+    errRes:"❌ Cannot fit this reservation at that time.", errWalk:"❌ No suitable walk-in option today.",
+    warnSuggestFirst:"⚠️ Please suggest first.",
+    atTime:"at", using:"tables:", people:"people",
+    minsLeft:"mins left", endsAgo:"mins ago (ended)", startsIn:"Starts in", minsUnit:"mins",
+    resTimeStarted:"Res. started", minsAgo:"mins ago",
+    resEndPassed:"Res. ended", movedFromWaiting:"Moved from waiting /",
+    seatedEarly:"Seated early at", seatedAt:"Seated at", more:"more", virtualTime:"Virtual Time:",
+  },
+  ja: {
+    title:"レストラン席管理", langBtn:"English",
+    clockHint:"← この時計を基準に残り時間や開始時刻を計算",
+    bizHours:"営業時間: 11:30〜14:30 / 16:30〜21:15（5分刻み）",
+    minus30:"-30分", minus5:"-5分", plus5:"+5分", plus30:"+30分", reset:"現在時刻に戻す",
+    formTitle:"新規予約 / ウォークイン",
+    labelName:"お名前", namePh:"お客様名",
+    labelStart:"開始", labelPeople:"人数", labelType:"種別",
+    typeRes:"予約", typeWalk:"ウォークイン",
+    labelMaxMins:"最大時間", maxMinsHint:"最低60分",
+    btnSuggest:"提案", btnAdd:"登録", btnClear:"クリア",
+    seatedTitle:"着席中", seatedHint:"現在テーブルを使用中", noSeated:"着席中のグループはありません。",
+    waitTitle:"ウェイティング", waitHint:"未着席 / テーブルはブロックしない", noWait:"待機中のグループはありません。",
+    futureTitle:"予約一覧", futureHint:"事前予約 / 手動で早期着席可能", noFuture:"予約はありません。",
+    mapTitle:"席マップ", seats:"席",
+    typeLabelRes:"予約 / 着席中", typeLabelWalk:"ウォークイン / 着席中", typeWaiting:"ウェイティング", typeReservation:"予約",
+    timeLabel:"時間:", tablesLabel:"テーブル:",
+    requestedAt:"受付時刻:", estSeat:"着席予定:", estTables:"予定テーブル:",
+    estWaitReached:"予定時刻に達しました", estWaitLeft:"推定残り待ち時間:",
+    reservedTime:"予約時間:",
+    btnSeatNow:"今すぐ着席", btnSeatEarly:"早期着席", btnDelete:"削除",
+    legendFree:"空き", legendUsed:"使用中", legendAvail:"今すぐ可能", legendNext:"待機選択肢",
+    opt:"選択肢", optRes:"予約", optNow:"今すぐ着席", optWait:"待機",
+    okRes:"🟢 予約可能です", okWalk:"🟢 今すぐ着席できます",
+    waitSel:"⏳ 待機案を選択中\n着席予定:", waitAnd:"テーブル:", waitTime:"\n推定待ち時間:", mins:"分",
+    addedFuture:"✅ 予約一覧に追加しました", addedSeated:"✅ 着席中に追加しました", addedWaiting:"✅ ウェイティングに追加しました",
+    movedSeated:"をウェイティングから着席中に移動しました。", movedFutureSeated:"を予約一覧から着席中に移動しました。",
+    warnSeat:"⚠️ 今すぐ着席できません。\n次の案:", warnWait:"待ち時間:", warnNoOption:"⚠️ 今すぐ着席できず、本日の代替案も見つかりませんでした。",
+    warnTablesBusy:"は今着席できません。\n対象テーブルが空いていません：",
+    errRes:"❌ その時間には予約を入れられません。", errWalk:"❌ 本日の適切なウォークイン枠が見つかりませんでした。",
+    warnSuggestFirst:"⚠️ 先に「提案」を押してください。",
+    atTime:"開始:", using:"テーブル:", people:"名",
+    minsLeft:"分後に終了", endsAgo:"分前に終了", startsIn:"開始まで", minsUnit:"分",
+    resTimeStarted:"予約時刻から", minsAgo:"分経過",
+    resEndPassed:"予約終了から", movedFromWaiting:"ウェイティングから移動 /",
+    seatedEarly:"早期着席:", seatedAt:"着席:", more:"件", virtualTime:"仮想時刻:",
+  }
+};
+let currentLang="ja";
+function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
+</script>
+
+<div class="title-row">
+  <h1 id="appTitle"></h1>
+  <button class="lang-btn" id="langToggle" onclick="toggleLang()"></button>
+</div>
+
+
+<div class="row">
+  <div class="panel">
+    <h2 id="formTitle"></h2>
+    <div><label id="labelName"></label><input id="guestName" type="text" style="width:165px;"></div>
+    <div><label id="labelStart"></label><select id="start"></select></div>
+    <div><label id="labelPeople"></label><input id="people" type="number" min="1" max="20" value="4" style="width:55px;"></div>
+    <div><label id="labelType"></label>
+      <select id="type"><option value="reservation" id="optRes"></option><option value="walkin" id="optWalk"></option></select>
+    </div>
+    <div id="walkinBlock" style="display:none;">
+      <label id="labelMaxMins"></label>
+      <input id="maxMins" type="number" min="60" max="120" step="5" value="60" style="width:55px;">
+      <span class="small" id="maxMinsHint"></span>
+    </div>
+    <div style="margin-top:5px;">
+      <button id="btnSuggest"></button><button id="btnAdd"></button><button id="btnClearSuggest"></button>
+    </div>
+    <div class="result" id="result"></div>
+    <div id="optionList" class="option-list"></div>
+    <div class="section"><h3 id="seatedTitle"></h3><div class="small" id="seatedHint"></div><div id="seatedList" class="list"></div></div>
+    <div class="section"><h3 id="waitTitle"></h3><div class="small" id="waitHint"></div><div id="waitingList" class="list"></div></div>
+    <div class="section"><h3 id="futureTitle"></h3><div class="small" id="futureHint"></div><div id="futureList" class="list"></div></div>
+  </div>
+
+  <div class="map">
+    <h2 id="mapTitle"></h2>
+    <div class="seat-layout">
+      <!-- Tables 1-8: single column -->
+      <div class="left-col" id="leftCol"></div>
+
+      <!-- Table 9 | wall | Table 10 -->
+      <div class="middle-col">
+        <div class="table table-9 free" id="t9">
+          <div class="table-name">9</div><div class="capacity" id="cap9"></div>
+          <div class="time-label" id="time-9"></div><div class="more-label" id="more-9"></div>
+        </div>
+        <div class="wall"></div>
+        <div class="table table-10 free" id="t10">
+          <div class="table-name">10</div><div class="capacity" id="cap10"></div>
+          <div class="time-label" id="time-10"></div><div class="more-label" id="more-10"></div>
+        </div>
+      </div>
+
+      <!-- 11A 11B / 12A 12B -->
+      <div class="right-grid">
+        <div class="table table-r free" id="t11A"><div class="table-name">11A</div><div class="capacity" id="cap11A"></div><div class="time-label" id="time-11A"></div><div class="more-label" id="more-11A"></div></div>
+        <div class="table table-r free" id="t11B"><div class="table-name">11B</div><div class="capacity" id="cap11B"></div><div class="time-label" id="time-11B"></div><div class="more-label" id="more-11B"></div></div>
+        <div class="table table-r free" id="t12A"><div class="table-name">12A</div><div class="capacity" id="cap12A"></div><div class="time-label" id="time-12A"></div><div class="more-label" id="more-12A"></div></div>
+        <div class="table table-r free" id="t12B"><div class="table-name">12B</div><div class="capacity" id="cap12B"></div><div class="time-label" id="time-12B"></div><div class="more-label" id="more-12B"></div></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot free"></span> <span id="lgFree"></span></span>
+      <span><span class="dot used"></span> <span id="lgUsed"></span></span>
+      <span><span class="dot suggested"></span> <span id="lgAvail"></span></span>
+      <span><span class="dot next-up"></span> <span id="lgNext"></span></span>
+    </div>
+  </div>
+
+  <!-- Clock box: rightmost column -->
+  <div class="clock-box">
+    <span class="clock-main" id="virtualClock"></span>
+    <span class="small" id="clockHint"></span>
+    <div class="clock-btns">
+      <button id="minus30"></button><button id="minus5"></button>
+      <button id="plus5"></button><button id="plus30"></button>
+      <button id="resetClock"></button>
+    </div>
+    <span class="small" id="bizHours"></span>
+  </div>
+</div>
+
+<script>
+const TABLES=[{id:"1",capacity:2},{id:"2",capacity:2},{id:"3",capacity:2},{id:"4",capacity:2},{id:"5",capacity:2},{id:"6",capacity:2},{id:"7",capacity:2},{id:"8",capacity:2},{id:"9",capacity:4},{id:"10",capacity:4},{id:"11A",capacity:2},{id:"11B",capacity:2},{id:"12A",capacity:2},{id:"12B",capacity:2}];
+const CAP=Object.fromEntries(TABLES.map(t=>[t.id,t.capacity]));
+const GROUP_COLORS=["#2563eb","#16a34a","#dc2626","#9333ea","#ea580c","#0891b2","#ca8a04","#db2777","#4f46e5","#0f766e"];
+
+let seatedEntries=[],waitingEntries=[],futureReservations=[];
+let suggestedTables=[],nextAvailableTables=[];
+let pendingSuggestion=null,suggestionOptions=[],selectedOptionIndex=-1,reservationCounter=1;
+let virtualNowMin=getRealNowMinutes();
+
+// Build tables 1-8 as single column
+const leftGrid=document.getElementById("leftCol");
+for(let i=1;i<=8;i++){
+  const d=document.createElement("div");
+  d.className="table table-sm free"; d.id="t"+i;
+  d.innerHTML=`<div class="table-name">${i}</div><div class="capacity" id="cap${i}"></div><div class="time-label" id="time-${i}"></div><div class="more-label" id="more-${i}"></div>`;
+  leftGrid.appendChild(d);
+}
+
+function toggleLang(){currentLang=currentLang==="ja"?"en":"ja";applyLang();generateTimes();renderAllLists();renderOptionList();}
+
+function applyLang(){
+  const ids={appTitle:"title",langToggle:"langBtn",clockHint:"clockHint",bizHours:"bizHours",
+    minus30:"minus30",minus5:"minus5",plus5:"plus5",plus30:"plus30",resetClock:"reset",
+    formTitle:"formTitle",labelName:"labelName",labelStart:"labelStart",labelPeople:"labelPeople",
+    labelType:"labelType",optRes:"typeRes",optWalk:"typeWalk",labelMaxMins:"labelMaxMins",
+    maxMinsHint:"maxMinsHint",btnSuggest:"btnSuggest",btnAdd:"btnAdd",btnClearSuggest:"btnClear",
+    seatedTitle:"seatedTitle",seatedHint:"seatedHint",waitTitle:"waitTitle",waitHint:"waitHint",
+    futureTitle:"futureTitle",futureHint:"futureHint",mapTitle:"mapTitle",
+    lgFree:"legendFree",lgUsed:"legendUsed",lgAvail:"legendAvail",lgNext:"legendNext"};
+  for(const[id,key]of Object.entries(ids)){const el=document.getElementById(id);if(el)el.textContent=t(key);}
+  document.getElementById("guestName").placeholder=t("namePh");
+  const caps={1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:4,10:4,"11A":2,"11B":2,"12A":2,"12B":2};
+  for(const[id,c]of Object.entries(caps)){const el=document.getElementById("cap"+id);if(el)el.textContent=c+" "+t("seats");}
+  updateVirtualClockText();
+}
+
+function getRealNowMinutes(){const n=new Date();return n.getHours()*60+n.getMinutes();}
+function clampToDay(m){return Math.max(0,Math.min(23*60+59,m));}
+function updateVirtualClockText(){document.getElementById("virtualClock").textContent=t("virtualTime")+" "+minutesToLabel(virtualNowMin);}
+function adjustClock(d){virtualNowMin=clampToDay(virtualNowMin+d);updateVirtualClockText();renderAllLists();refreshMap();if(pendingSuggestion)selectOption(selectedOptionIndex);}
+function resetClockToReal(){virtualNowMin=getRealNowMinutes();updateVirtualClockText();renderAllLists();refreshMap();if(pendingSuggestion)selectOption(selectedOptionIndex);}
+
+function getAllBusinessTimes(){const ts=[];function r(sh,sm,eh,em){let t=sh*60+sm,e=eh*60+em;while(t<=e){ts.push(t);t+=5;}}r(11,30,14,30);r(16,30,21,15);return ts;}
+function generateTimes(){const sel=document.getElementById("start");sel.innerHTML="";const ts=getAllBusinessTimes();for(const m of ts){const o=document.createElement("option");o.value=m;o.textContent=minutesToLabel(m);sel.appendChild(o);}const near=ts.reduce((b,x)=>Math.abs(x-virtualNowMin)<Math.abs(b-virtualNowMin)?x:b,ts[0]);sel.value=String(near);}
+function minutesToLabel(m){const h=Math.floor(m/60),mn=m%60;return`${String(h).padStart(2,"0")}:${String(mn).padStart(2,"0")}`;}
+function getColorForGroup(g){const n=Number(String(g).replace(/\D/g,""))||1;return GROUP_COLORS[(n-1)%GROUP_COLORS.length];}
+function displayLabel(r){return r.guestName&&r.guestName.trim()?r.guestName.trim():r.groupId;}
+
+function overlap(as,ae,bs,be){return!(ae<=bs||be<=as);}
+function capacityOf(ids){return ids.reduce((s,id)=>s+(CAP[id]||0),0);}
+function getAllBlockingEntries(){return[...seatedEntries,...futureReservations];}
+function tablesUsedInWindow(s,e,ig=null){const u=new Set();for(const r of getAllBlockingEntries()){if(ig&&r.id===ig)continue;if(overlap(s,e,r.startMin,r.endMin))r.tables.forEach(x=>u.add(x));}return u;}
+function freeTablesInWindow(s,e,ig=null){const u=tablesUsedInWindow(s,e,ig);return TABLES.map(x=>x.id).filter(id=>!u.has(id));}
+function getOverlappingEntries(s,e,ig=null){return getAllBlockingEntries().filter(r=>{if(ig&&r.id===ig)return false;return overlap(s,e,r.startMin,r.endMin);});}
+function getSpareChairs(s,e,ig=null){let sp=0;for(const r of getOverlappingEntries(s,e,ig))sp+=Math.max(0,capacityOf(r.tables)-r.people);return sp;}
+function both12Free(s,e,ig=null){const u=tablesUsedInWindow(s,e,ig);return!u.has("12A")&&!u.has("12B");}
+function threeForSix(s,e,ig=null){if(!both12Free(s,e,ig))return null;const f=freeTablesInWindow(s,e,ig);if(f.includes("11A")&&f.includes("12A")&&f.includes("12B"))return{tables:["11A","12A","12B"],note:"11A+12A+12B"};if(f.includes("11B")&&f.includes("12A")&&f.includes("12B"))return{tables:["11B","12A","12B"],note:"11B+12A+12B"};return null;}
+function fourFor78(s,e,ig=null){if(!both12Free(s,e,ig))return null;const f=freeTablesInWindow(s,e,ig);if(["11A","11B","12A","12B"].every(x=>f.includes(x)))return{tables:["11A","11B","12A","12B"],note:"11A+11B+12A+12B"};return null;}
+function twoForFive(s,e,ig=null){const f=freeTablesInWindow(s,e,ig);if(!both12Free(s,e,ig))return null;if(getSpareChairs(s,e,ig)<1)return null;for(const p of[["11A","11B"],["12A","12B"],["11A","12A"],["11B","12B"],["11A","12B"],["11B","12A"]])if(p.every(x=>f.includes(x)))return p;return null;}
+function consec(order,free,people){const need=Math.ceil(people/2);for(let i=0;i<=order.length-need;i++){const sl=order.slice(i,i+need);if(sl.every(x=>free.includes(x)))return sl;}return null;}
+function anyCombo(people,free){const c=[];function bt(st,ch){if(capacityOf(ch)>=people){c.push([...ch]);return;}for(let i=st;i<free.length;i++){ch.push(free[i]);bt(i+1,ch);ch.pop();}}bt(0,[]);if(!c.length)return null;c.sort((a,b)=>a.length!==b.length?a.length-b.length:capacityOf(a)-capacityOf(b));return c[0];}
+function suggestLarge(s,e,people,free,ig=null){const ln=consec(["1","2","3","4","5","6","7","8"],free,people);if(ln)return{tables:ln,note:`Line(${capacityOf(ln)})`};if(people===6){const r=threeForSix(s,e,ig);if(r)return r;}if(people===7||people===8){const r=fourFor78(s,e,ig);if(r)return r;}return null;}
+function suggestFive(s,e,free,ig=null){const ln=consec(["1","2","3","4","5","6","7","8"],free,5);if(ln)return{tables:ln,note:`Line(${capacityOf(ln)})`};const p=twoForFive(s,e,ig);if(p)return{tables:p,note:"2tables+chair"};return null;}
+function suggest34(s,e,people,free){if(people<=4){if(free.includes("10"))return{tables:["10"],note:"T10"};if(free.includes("11A")&&free.includes("11B"))return{tables:["11A","11B"],note:"11A+11B"};if(free.includes("12A")&&free.includes("12B"))return{tables:["12A","12B"],note:"12A+12B"};if(free.includes("9"))return{tables:["9"],note:"T9"};}const lp=consec(["1","2","3","4","5","6","7","8"],free,people);if(lp)return{tables:lp,note:"Connected"};const a=anyCombo(people,free);if(a)return{tables:a,note:"Combo"};return null;}
+function suggest12(free,people){for(const id of["11A","11B","12A","12B","1","2","3","4","5","6","7","8"])if(free.includes(id)&&CAP[id]>=people)return{tables:[id],note:`T${id}`};if(free.includes("10")&&people<=4)return{tables:["10"],note:"T10"};if(free.includes("9")&&people<=4)return{tables:["9"],note:"T9"};const a=anyCombo(people,free);if(a)return{tables:a,note:"Combo"};return null;}
+function nextResStart(tid,cur,ig=null){const a=getAllBlockingEntries().filter(r=>(!ig||r.id!==ig)&&r.tables.includes(tid)&&r.startMin>cur).sort((a,b)=>a.startMin-b.startMin);return a.length?a[0].startMin:null;}
+function setupAvail(tables,s,max,ig=null){let nx=Infinity;for(const id of tables){const n=nextResStart(id,s,ig);if(n!==null)nx=Math.min(nx,n);}return nx===Infinity?max:Math.min(max,nx-s);}
+
+function suggestWalkIn(startMin,people,maxMins,ig=null){
+  const fe=startMin+120,ff=freeTablesInWindow(startMin,fe,ig);
+  let found=null;
+  if(people>=6)found=suggestLarge(startMin,fe,people,ff,ig);
+  else if(people===5)found=suggestFive(startMin,fe,ff,ig);
+  else if(people>=3)found=suggest34(startMin,fe,people,ff);
+  else found=suggest12(ff,people);
+  if(found)return{ok:true,startMin,endMin:fe,tables:found.tables,note:`WalkIn:120m/${found.note}`,status:"now"};
+  const cands=[];
+  for(const tb of TABLES){
+    if(tb.capacity<people)continue;
+    const used=getAllBlockingEntries().some(r=>(!ig||r.id!==ig)&&r.tables.includes(tb.id)&&overlap(startMin,startMin+1,r.startMin,r.endMin));
+    if(used)continue;
+    const ns=nextResStart(tb.id,startMin,ig);
+    const av=ns===null?maxMins:ns-startMin;
+    if(av>=60)cands.push({tables:[tb.id],availableMins:Math.min(av,maxMins),note:`T${tb.id}`});
+  }
+  if(people===5){const p=twoForFive(startMin,startMin+maxMins,ig);if(p){const a=setupAvail(p,startMin,maxMins,ig);if(a>=60)cands.push({tables:p,availableMins:a,note:"2t+chair"});}}
+  if(people===6){const r=threeForSix(startMin,startMin+maxMins,ig);if(r){const a=setupAvail(r.tables,startMin,maxMins,ig);if(a>=60)cands.push({tables:r.tables,availableMins:a,note:r.note});}}
+  if(people===7||people===8){const r=fourFor78(startMin,startMin+maxMins,ig);if(r){const a=setupAvail(r.tables,startMin,maxMins,ig);if(a>=60)cands.push({tables:r.tables,availableMins:a,note:r.note});}}
+  if(!cands.length)return{ok:false,startMin,endMin:startMin,tables:[],note:"",status:"none"};
+  cands.sort((a,b)=>b.availableMins!==a.availableMins?b.availableMins-a.availableMins:a.tables.length-b.tables.length);
+  const best=cands[0];
+  return{ok:true,startMin,endMin:startMin+best.availableMins,tables:best.tables,note:`WalkIn:${best.availableMins}m/${best.note}`,status:"now"};
+}
+function suggestRes(startMin,people,ig=null){
+  const endMin=startMin+120,free=freeTablesInWindow(startMin,endMin,ig);
+  let found=null;
+  if(people>=6)found=suggestLarge(startMin,endMin,people,free,ig);
+  else if(people===5)found=suggestFive(startMin,endMin,free,ig);
+  else if(people>=3)found=suggest34(startMin,endMin,people,free);
+  else found=suggest12(free,people);
+  if(!found)return{ok:false,startMin,endMin,tables:[],note:"",status:"none"};
+  return{ok:true,startMin,endMin,tables:found.tables,note:`Res:120m/${found.note}`,status:"now"};
+}
+function suggestEntry({type,startMin,people,maxMins},ig=null){return type==="reservation"?suggestRes(startMin,people,ig):suggestWalkIn(startMin,people,maxMins,ig);}
+function findFuture(startMin,people,type,maxMins,limit=3,ig=null){
+  const ts=getAllBusinessTimes().filter(x=>x>startMin),results=[],seen=new Set();
+  for(const cs of ts){const sg=type==="reservation"?suggestRes(cs,people,ig):suggestWalkIn(cs,people,maxMins,ig);if(!sg.ok)continue;const k=`${cs}|${sg.tables.join(",")}`;if(seen.has(k))continue;seen.add(k);results.push({...sg,status:"later",waitMins:cs-startMin});if(results.length>=limit)break;}
+  return results;
+}
+
+function setTableClass(id,cls){const el=document.getElementById("t"+id);if(!el)return;el.classList.remove("free","used","suggested","next-up");el.classList.add(cls);}
+function updateTableTimeLabels(){
+  const blocking=getAllBlockingEntries();
+  for(const tb of TABLES){
+    const tl=document.getElementById(`time-${tb.id}`),ml=document.getElementById(`more-${tb.id}`);
+    if(!tl||!ml)continue;
+    let entries=blocking.filter(r=>r.tables.includes(tb.id)).map(r=>({groupId:r.groupId,guestName:r.guestName,startMin:r.startMin,endMin:r.endMin}));
+    if(pendingSuggestion&&pendingSuggestion.previewBlocksTables&&pendingSuggestion.tables.includes(tb.id))
+      entries.push({groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin});
+    entries.sort((a,b)=>a.startMin-b.startMin);
+    if(!entries.length){tl.innerHTML="";ml.textContent="";continue;}
+    const vis=entries.slice(0,2),hid=entries.length-vis.length;
+    tl.innerHTML=vis.map(e=>{const c=getColorForGroup(e.groupId),nm=e.guestName&&e.guestName.trim()?e.guestName.trim():e.groupId;return`<span class="entry-line"><span class="entry-name" style="color:${c};">${nm}</span><span class="entry-time">${minutesToLabel(e.startMin)}–${minutesToLabel(e.endMin)}</span></span>`;}).join("");
+    ml.textContent=hid>0?`+${hid} ${t("more")}`:"";
+  }
+}
+function refreshMap(){
+  TABLES.forEach(tb=>setTableClass(tb.id,"free"));
+  const used=new Set();getAllBlockingEntries().forEach(r=>r.tables.forEach(x=>used.add(x)));
+  used.forEach(x=>setTableClass(x,"used"));
+  suggestedTables.forEach(x=>{if(!used.has(x))setTableClass(x,"suggested");});
+  nextAvailableTables.forEach(x=>{if(!used.has(x))setTableClass(x,"next-up");});
+  updateTableTimeLabels();
+}
+function clearSug(){suggestedTables=[];nextAvailableTables=[];pendingSuggestion=null;suggestionOptions=[];selectedOptionIndex=-1;}
+function renderEmpty(c,text){c.innerHTML=`<div class="empty">${text}</div>`;}
+
+function seatedStatus(r){if(virtualNowMin<r.startMin)return`${t("startsIn")} ${r.startMin-virtualNowMin} ${t("minsUnit")}`;if(virtualNowMin<r.endMin)return`${r.endMin-virtualNowMin} ${t("minsLeft")}`;return`${virtualNowMin-r.endMin} ${t("endsAgo")}`;}
+function futureStatus(r){if(virtualNowMin<r.startMin)return`${t("startsIn")} ${r.startMin-virtualNowMin} ${t("minsUnit")}`;if(virtualNowMin<r.endMin)return`${t("resTimeStarted")} ${virtualNowMin-r.startMin} ${t("minsAgo")}`;return`${t("resEndPassed")} ${virtualNowMin-r.endMin} ${t("minsAgo")}`;}
+
+function mkListItem(r,cls,extraRows,btns){
+  const color=getColorForGroup(r.groupId),div=document.createElement("div");
+  div.className="list-item "+cls;
+  div.innerHTML=`<div><div><span class="color-dot-inline" style="background:${color};"></span><span class="reservation-id" style="color:${color};">${displayLabel(r)}</span> ${extraRows.title}</div>${extraRows.rows.map(x=>`<div class="small">${x}</div>`).join("")}${r.note?`<div class="small">${r.note}</div>`:""}</div><div class="action-buttons">${btns.map(b=>`<button data-action="${b.action}">${b.label}</button>`).join("")}</div>`;
+  btns.forEach(b=>div.querySelector(`[data-action="${b.action}"]`).addEventListener("click",b.fn));
+  return div;
+}
+function renderSeatedList(){
+  const c=document.getElementById("seatedList");c.innerHTML="";
+  if(!seatedEntries.length){renderEmpty(c,t("noSeated"));return;}
+  for(const r of seatedEntries){
+    const item=mkListItem(r,"seated",{
+      title:`<b>${r.type==="reservation"?t("typeLabelRes"):t("typeLabelWalk")}</b> — ${r.people} ${t("people")}`,
+      rows:[`${t("timeLabel")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("tablesLabel")} ${r.tables.join(", ")}`,seatedStatus(r)]
+    },[{action:"delete",label:t("btnDelete"),fn:()=>{seatedEntries=seatedEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    c.appendChild(item);
+  }
+}
+function renderWaitingList(){
+  const c=document.getElementById("waitingList");c.innerHTML="";
+  if(!waitingEntries.length){renderEmpty(c,t("noWait"));return;}
+  for(const r of waitingEntries){
+    const estLeft=Math.max(0,r.startMin-virtualNowMin);
+    const item=mkListItem(r,"waiting",{
+      title:`<b>${t("typeWaiting")}</b> — ${r.people} ${t("people")}`,
+      rows:[`${t("requestedAt")} ${minutesToLabel(r.originalRequestedStart)}`,`${t("estSeat")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("estTables")} ${r.tables.join(", ")}`,estLeft===0?t("estWaitReached"):`${t("estWaitLeft")} ${estLeft} ${t("minsUnit")}`]
+    },[{action:"seat",label:t("btnSeatNow"),fn:()=>confirmSeatWaiting(r.id)},{action:"delete",label:t("btnDelete"),fn:()=>{waitingEntries=waitingEntries.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    c.appendChild(item);
+  }
+}
+function renderFutureList(){
+  const c=document.getElementById("futureList");c.innerHTML="";
+  if(!futureReservations.length){renderEmpty(c,t("noFuture"));return;}
+  for(const r of futureReservations){
+    const seatLbl=virtualNowMin>=r.startMin?t("btnSeatNow"):t("btnSeatEarly");
+    const item=mkListItem(r,"future",{
+      title:`<b>${t("typeReservation")}</b> — ${r.people} ${t("people")}`,
+      rows:[`${t("reservedTime")} ${minutesToLabel(r.startMin)} - ${minutesToLabel(r.endMin)}`,`${t("tablesLabel")} ${r.tables.join(", ")}`,futureStatus(r)]
+    },[{action:"seat",label:seatLbl,fn:()=>seatFutureNow(r.id)},{action:"delete",label:t("btnDelete"),fn:()=>{futureReservations=futureReservations.filter(x=>x.id!==r.id);renderAllLists();refreshMap();document.getElementById("result").innerText="";}}]);
+    c.appendChild(item);
+  }
+}
+function renderAllLists(){renderSeatedList();renderWaitingList();renderFutureList();}
+
+function selectOption(index){
+  const op=suggestionOptions[index];if(!op)return;
+  selectedOptionIndex=index;suggestedTables=[];nextAvailableTables=[];
+  pendingSuggestion={groupId:`R${reservationCounter}`,guestName:op.guestName||"",type:op.type,people:op.people,startMin:op.startMin,endMin:op.endMin,tables:op.tables,note:op.note,mode:op.mode,waitMins:op.waitMins||0,maxMins:op.maxMins,originalRequestedStart:op.originalRequestedStart,previewBlocksTables:op.mode==="now"&&op.type==="reservation"};
+  const nm=pendingSuggestion.guestName||pendingSuggestion.groupId;
+  if(op.mode==="now"){suggestedTables=op.tables;const msg=op.type==="reservation"?t("okRes"):t("okWalk");document.getElementById("result").innerText=`${msg}\n${nm} / ${pendingSuggestion.people} ${t("people")} ${t("atTime")} ${minutesToLabel(op.startMin)} ${t("using")} [${op.tables.join(", ")}]`;}
+  else{nextAvailableTables=op.tables;document.getElementById("result").innerText=`${t("waitSel")} ${minutesToLabel(op.startMin)} ${t("waitAnd")} [${op.tables.join(", ")}]${t("waitTime")} ${Math.max(0,op.startMin-virtualNowMin)} ${t("mins")}`;}
+  renderOptionList();refreshMap();
+}
+function renderOptionList(){
+  const c=document.getElementById("optionList");c.innerHTML="";
+  if(!suggestionOptions.length)return;
+  suggestionOptions.forEach((op,i)=>{
+    const d=document.createElement("div");d.className="option-card"+(i===selectedOptionIndex?" selected":"");
+    let title=op.mode==="now"&&op.type==="reservation"?`${t("opt")} ${i+1}: ${t("optRes")}`:op.mode==="now"?`${t("opt")} ${i+1}: ${t("optNow")}`:`${t("opt")} ${i+1}: ${t("optWait")} ${Math.max(0,op.startMin-virtualNowMin)} ${t("mins")}`;
+    d.innerHTML=`<div class="option-title">${title}</div><div>${minutesToLabel(op.startMin)}–${minutesToLabel(op.endMin)}</div><div>[${op.tables.join(", ")}]</div><div>${op.note}</div>`;
+    d.addEventListener("click",()=>selectOption(i));c.appendChild(d);
+  });
+}
+
+function tablesAreFree(entry,ig=null){for(const ex of getAllBlockingEntries()){if(ig&&ex.id===ig)continue;if(!overlap(entry.startMin,entry.endMin,ex.startMin,ex.endMin))continue;if(entry.tables.some(x=>ex.tables.includes(x)))return false;}return true;}
+function confirmSeatWaiting(wid){
+  const r=waitingEntries.find(x=>x.id===wid);if(!r)return;
+  const sg=suggestWalkIn(virtualNowMin,r.people,r.maxMins,null);
+  if(!sg.ok){const alts=findFuture(virtualNowMin,r.people,"walkin",r.maxMins,3,null);if(alts.length){const f=alts[0];document.getElementById("result").innerText=`${t("warnSeat")} ${minutesToLabel(f.startMin)} [${f.tables.join(", ")}]\n${t("warnWait")} ${f.startMin-virtualNowMin} ${t("mins")}`;}else document.getElementById("result").innerText=t("warnNoOption");refreshMap();return;}
+  waitingEntries=waitingEntries.filter(x=>x.id!==wid);
+  seatedEntries.push({id:r.id,groupId:r.groupId,guestName:r.guestName,type:"walkin",startMin:virtualNowMin,endMin:sg.endMin,people:r.people,tables:sg.tables,note:`${t("movedFromWaiting")} ${sg.note}`,maxMins:r.maxMins,originalRequestedStart:r.originalRequestedStart});
+  renderAllLists();refreshMap();document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${t("movedSeated")}`;
+}
+function seatFutureNow(rid){
+  const r=futureReservations.find(x=>x.id===rid);if(!r)return;
+  const as=Math.min(virtualNowMin,r.startMin),cand={...r,startMin:as};
+  if(!tablesAreFree(cand,r.id)){document.getElementById("result").innerText=`⚠️ ${displayLabel(r)} ${t("warnTablesBusy")} ${minutesToLabel(virtualNowMin)}.`;return;}
+  futureReservations=futureReservations.filter(x=>x.id!==rid);
+  seatedEntries.push({id:r.id,groupId:r.groupId,guestName:r.guestName,type:"reservation",startMin:as,endMin:r.endMin,people:r.people,tables:r.tables,note:virtualNowMin<r.startMin?`${t("seatedEarly")} ${minutesToLabel(virtualNowMin)}`:`${t("seatedAt")} ${minutesToLabel(virtualNowMin)}`});
+  renderAllLists();refreshMap();document.getElementById("result").innerText=`✅ ${displayLabel(r)} ${t("movedFutureSeated")}`;
+}
+
+document.getElementById("type").addEventListener("change",()=>{document.getElementById("walkinBlock").style.display=document.getElementById("type").value==="walkin"?"block":"none";});
+document.getElementById("btnSuggest").addEventListener("click",()=>{
+  const startMin=Number(document.getElementById("start").value);
+  const people=Number(document.getElementById("people").value);
+  const type=document.getElementById("type").value;
+  const maxMins=Number(document.getElementById("maxMins").value);
+  const guestName=document.getElementById("guestName").value.trim();
+  clearSug();document.getElementById("optionList").innerHTML="";
+  const sg=suggestEntry({type,startMin,people,maxMins});
+  if(sg.ok){suggestionOptions=[{...sg,type,people,mode:"now",waitMins:0,maxMins,originalRequestedStart:startMin,guestName}];selectOption(0);return;}
+  if(type==="walkin"){const fs=findFuture(startMin,people,type,maxMins,3).map(x=>({...x,type,people,mode:"later",maxMins,originalRequestedStart:startMin,guestName,note:`${x.note}/Wait:${x.waitMins}m`}));if(fs.length){suggestionOptions=fs;selectOption(0);return;}}
+  document.getElementById("result").innerText=type==="reservation"?t("errRes"):t("errWalk");refreshMap();
+});
+document.getElementById("btnAdd").addEventListener("click",()=>{
+  if(!pendingSuggestion){document.getElementById("result").innerText=t("warnSuggestFirst");return;}
+  const id=crypto.randomUUID?crypto.randomUUID():String(Date.now());
+  const nm=pendingSuggestion.guestName||pendingSuggestion.groupId;
+  if(pendingSuggestion.type==="reservation"){
+    futureReservations.push({id,groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,type:"reservation",startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin,people:pendingSuggestion.people,tables:pendingSuggestion.tables,note:pendingSuggestion.note});
+    document.getElementById("result").innerText=`${t("addedFuture")}\n${nm} / ${pendingSuggestion.people} ${t("people")} ${t("atTime")} ${minutesToLabel(pendingSuggestion.startMin)} ${t("using")} [${pendingSuggestion.tables.join(", ")}]`;
+  }else if(pendingSuggestion.mode==="now"){
+    seatedEntries.push({id,groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,type:"walkin",startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin,people:pendingSuggestion.people,tables:pendingSuggestion.tables,note:pendingSuggestion.note,maxMins:pendingSuggestion.maxMins,originalRequestedStart:pendingSuggestion.originalRequestedStart});
+    document.getElementById("result").innerText=`${t("addedSeated")}\n${nm} / ${pendingSuggestion.people} ${t("people")} ${t("atTime")} ${minutesToLabel(pendingSuggestion.startMin)} ${t("using")} [${pendingSuggestion.tables.join(", ")}]`;
+  }else{
+    waitingEntries.push({id,groupId:pendingSuggestion.groupId,guestName:pendingSuggestion.guestName,type:"walkin",startMin:pendingSuggestion.startMin,endMin:pendingSuggestion.endMin,people:pendingSuggestion.people,tables:pendingSuggestion.tables,note:pendingSuggestion.note,waitMins:pendingSuggestion.waitMins,maxMins:pendingSuggestion.maxMins,originalRequestedStart:pendingSuggestion.originalRequestedStart});
+    document.getElementById("result").innerText=`${t("addedWaiting")}\n${nm} / ${pendingSuggestion.people} ${t("people")}\n${t("estSeat")} ${minutesToLabel(pendingSuggestion.startMin)}\n${t("estWaitLeft")} ${Math.max(0,pendingSuggestion.startMin-virtualNowMin)} ${t("mins")}`;
+  }
+  reservationCounter+=1;clearSug();renderOptionList();renderAllLists();refreshMap();
+});
+document.getElementById("btnClearSuggest").addEventListener("click",()=>{clearSug();document.getElementById("result").innerText="";renderOptionList();refreshMap();});
+document.getElementById("minus30").addEventListener("click",()=>adjustClock(-30));
+document.getElementById("minus5").addEventListener("click",()=>adjustClock(-5));
+document.getElementById("plus5").addEventListener("click",()=>adjustClock(5));
+document.getElementById("plus30").addEventListener("click",()=>adjustClock(30));
+document.getElementById("resetClock").addEventListener("click",resetClockToReal);
+
+applyLang();generateTimes();renderAllLists();renderOptionList();refreshMap();
+</script>
+</body>
+</html>
