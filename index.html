@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<!-- saved from url=(0059)file:///C:/Users/hamas/Downloads/restaurant_planner_14.html -->
+<!-- saved from url=(0059)file:///C:/Users/hamas/Downloads/restaurant_planner_26.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@ body {
   padding: 6px 10px;
   margin: 0;
   background: #fafafa;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
 h1 { margin: 0; font-size: 20px; display: inline; }
@@ -44,7 +45,7 @@ h1 { margin: 0; font-size: 20px; display: inline; }
 .map {
   flex: 1; border: 1px solid #ddd; border-radius: 10px;
   padding: 8px; background: white;
-  max-height: calc(100vh - 42px); overflow: hidden;
+  max-height: calc(100vh - 42px); overflow-y: auto;
 }
 .panel h2, .map h2 { margin: 0 0 5px; font-size: 14px; }
 h3 { margin: 7px 0 3px; font-size: 12px; }
@@ -76,10 +77,10 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
 .left-col { display: flex; flex-direction: column; gap: 4px; }
 
 /* Middle col: table9 | wall | table10 side by side */
-.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 222px; }
+.middle-col { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-top: 198px; }
 
 /* Right: 2×2 grid for 11A/B, 12A/B */
-.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 189px; }
+.right-grid { display: grid; grid-template-columns: repeat(2, 90px); gap: 5px; padding-top: 165px; }
 
 /* Base table card */
 .table {
@@ -89,7 +90,7 @@ button { padding: 5px 8px; cursor: pointer; margin-right: 3px; margin-top: 3px; 
   user-select: none; text-align: center;
   padding: 3px 2px 2px; overflow: hidden;
 }
-.table-sm  { width: 112px; height: 64px; }
+.table-sm  { width: 112px; height: 58px; }
 .table-9   { width: 108px; height: 96px; }
 .table-10  { width: 108px; height: 96px; }
 .table-r   { width: 90px;  height: 78px; }
@@ -304,11 +305,11 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
     <div><label id="labelName">お名前</label><input id="guestName" type="text" style="width:165px;" placeholder="お客様名"></div>
     <div><label id="labelStart">開始</label><select id="start"><option value="690">11:30</option><option value="695">11:35</option><option value="700">11:40</option><option value="705">11:45</option><option value="710">11:50</option><option value="715">11:55</option><option value="720">12:00</option><option value="725">12:05</option><option value="730">12:10</option><option value="735">12:15</option><option value="740">12:20</option><option value="745">12:25</option><option value="750">12:30</option><option value="755">12:35</option><option value="760">12:40</option><option value="765">12:45</option><option value="770">12:50</option><option value="775">12:55</option><option value="780">13:00</option><option value="785">13:05</option><option value="790">13:10</option><option value="795">13:15</option><option value="800">13:20</option><option value="805">13:25</option><option value="810">13:30</option><option value="815">13:35</option><option value="820">13:40</option><option value="825">13:45</option><option value="830">13:50</option><option value="835">13:55</option><option value="840">14:00</option><option value="845">14:05</option><option value="850">14:10</option><option value="990">16:30</option><option value="995">16:35</option><option value="1000">16:40</option><option value="1005">16:45</option><option value="1010">16:50</option><option value="1015">16:55</option><option value="1020">17:00</option><option value="1025">17:05</option><option value="1030">17:10</option><option value="1035">17:15</option><option value="1040">17:20</option><option value="1045">17:25</option><option value="1050">17:30</option><option value="1055">17:35</option><option value="1060">17:40</option><option value="1065">17:45</option><option value="1070">17:50</option><option value="1075">17:55</option><option value="1080">18:00</option><option value="1085">18:05</option><option value="1090">18:10</option><option value="1095">18:15</option><option value="1100">18:20</option><option value="1105">18:25</option><option value="1110">18:30</option><option value="1115">18:35</option><option value="1120">18:40</option><option value="1125">18:45</option><option value="1130">18:50</option><option value="1135">18:55</option><option value="1140">19:00</option><option value="1145">19:05</option><option value="1150">19:10</option><option value="1155">19:15</option><option value="1160">19:20</option><option value="1165">19:25</option><option value="1170">19:30</option><option value="1175">19:35</option><option value="1180">19:40</option><option value="1185">19:45</option><option value="1190">19:50</option><option value="1195">19:55</option><option value="1200">20:00</option><option value="1205">20:05</option><option value="1210">20:10</option><option value="1215">20:15</option><option value="1220">20:20</option><option value="1225">20:25</option><option value="1230">20:30</option><option value="1235">20:35</option><option value="1240">20:40</option><option value="1245">20:45</option><option value="1250">20:50</option><option value="1255">20:55</option><option value="1260">21:00</option><option value="1265">21:05</option><option value="1270">21:10</option><option value="1275">21:15</option></select></div>
     <div><label id="labelPeople">人数</label><input id="people" type="number" min="1" max="20" value="4" style="width:55px;"></div>
-    <div id="durationBlock" style="display: none;"><label id="labelDuration">時間（分）</label><input id="duration" type="number" min="30" max="240" step="10" value="120" style="width:55px;"> <span class="small">分</span></div>
+    <div id="durationBlock"><label id="labelDuration">時間（分）</label><input id="duration" type="number" min="30" max="240" step="10" value="120" style="width:55px;"> <span class="small">分</span></div>
     <div><label id="labelType">種別</label>
       <select id="type"><option value="reservation" id="optRes">予約</option><option value="walkin" id="optWalk">ウォークイン</option></select>
     </div>
-    <div id="walkinBlock" style="display: block;">
+    <div id="walkinBlock" style="display:none;">
       <label id="labelMaxMins">最大時間</label>
       <input id="maxMins" type="number" min="60" max="120" step="5" value="60" style="width:55px;">
       <span class="small" id="maxMinsHint">最低60分</span>
@@ -350,19 +351,11 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
         <div class="table table-r free" id="t12B"><div class="table-name">12B</div><div class="capacity" id="cap12B">2 席</div><div class="time-label" id="time-12B"></div><div class="more-label" id="more-12B"></div></div>
       </div>
     </div>
-    <div class="legend">
-      <span><span class="dot free"></span> <span id="lgFree">空き</span></span>
-      <span><span class="dot used"></span> <span id="lgUsed">使用中</span></span>
-      <span><span class="dot future-res"></span> <span id="lgFuture">予約あり（未開始）</span></span>
-      <span><span class="dot waiting-res"></span> <span id="lgWaiting">ウェイティング</span></span>
-      <span><span class="dot suggested"></span> <span id="lgAvail">今すぐ可能</span></span>
-      <span><span class="dot next-up"></span> <span id="lgNext">待機選択肢</span></span>
-    </div>
   </div>
 
   <!-- Clock box: rightmost column -->
   <div class="clock-box">
-    <span class="clock-main" id="virtualClock">仮想時刻: 16:30</span>
+    <span class="clock-main" id="virtualClock">仮想時刻: 17:59</span>
     <span class="small" id="clockHint">← この時計を基準に残り時間や開始時刻を計算</span>
     <div class="clock-btns">
       <button id="minus30">-30分</button><button id="minus5">-5分</button>
@@ -370,6 +363,15 @@ function t(k){return LANG[currentLang][k]||LANG.en[k]||k;}
       <button id="resetClock">現在時刻に戻す</button>
     </div>
     <span class="small" id="bizHours">営業時間: 11:30〜14:10 / 16:30〜21:15（5分刻み）</span>
+    <hr style="margin:6px 0;border-color:#eee;">
+    <div class="legend" style="flex-direction:column;gap:4px;margin:0;align-items:flex-start;">
+      <span><span class="dot free"></span> <span id="lgFree">空き</span></span>
+      <span><span class="dot used"></span> <span id="lgUsed">使用中</span></span>
+      <span><span class="dot future-res"></span> <span id="lgFuture">予約あり（未開始）</span></span>
+      <span><span class="dot waiting-res"></span> <span id="lgWaiting">ウェイティング</span></span>
+      <span><span class="dot suggested"></span> <span id="lgAvail">今すぐ可能</span></span>
+      <span><span class="dot next-up"></span> <span id="lgNext">待機選択肢</span></span>
+    </div>
   </div>
 </div>
 
@@ -407,8 +409,9 @@ let suggestedTables=[],nextAvailableTables=[];
 let pendingSuggestion=null,suggestionOptions=[],selectedOptionIndex=-1,reservationCounter=1;
 let virtualNowMin=getRealNowMinutes();
 
-// Build tables 1-8 as single column
+// Build tables 1-8 as single column (clear first to prevent duplication)
 const leftGrid=document.getElementById("leftCol");
+leftGrid.innerHTML="";
 for(let i=1;i<=8;i++){
   const d=document.createElement("div");
   d.className="table table-sm free"; d.id="t"+i;
